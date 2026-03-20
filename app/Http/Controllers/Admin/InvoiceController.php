@@ -9,15 +9,18 @@ use App\Models\Utility;
 use App\Models\Room;
 use App\Notifications\InvoiceCreated;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
+        Gate::authorize('manage-invoices');
+
         $user = auth()->user();
         $query = Invoice::with(['room', 'contract.user']);
 
-        // Landlord only sees their own rooms' invoices
         if ($user->isLandlord()) {
             $query->whereHas('room', function($q) use ($user) {
                 $q->where('landlord_id', $user->id);
@@ -43,6 +46,8 @@ class InvoiceController extends Controller
 
     public function create()
     {
+        Gate::authorize('manage-invoices');
+
         $user = auth()->user();
         $activeContracts = Contract::where('status', 'active')
             ->whereHas('room', function($q) use ($user) {
@@ -60,6 +65,8 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('manage-invoices');
+
         $request->validate([
             'contract_id'     => 'required|exists:contracts,id',
             'month'           => 'required|integer|between:1,12',
@@ -68,12 +75,12 @@ class InvoiceController extends Controller
             'electricity_fee' => 'required|numeric|min:0',
             'water_fee'       => 'required|numeric|min:0',
             'service_fee'     => 'required|numeric|min:0',
+            'due_date'        => 'nullable|date',
             'notes'           => 'nullable|string',
         ]);
 
-        $contract    = Contract::findOrFail($request->contract_id);
+        $contract = Contract::findOrFail($request->contract_id);
         
-        // Authorization check
         if (auth()->user()->isLandlord() && $contract->room->landlord_id !== auth()->id()) {
             abort(403);
         }
@@ -90,7 +97,9 @@ class InvoiceController extends Controller
             'water_fee'       => $request->water_fee,
             'service_fee'     => $request->service_fee,
             'total_amount'    => $totalAmount,
-            'status'          => 'unpaid',
+            'status'          => Invoice::STATUS_UNPAID,
+            'transaction_id'  => 'INV-' . strtoupper(Str::random(8)),
+            'due_date'        => $request->due_date ?? now()->addDays(15),
             'notes'           => $request->notes,
         ]);
 
@@ -101,11 +110,29 @@ class InvoiceController extends Controller
             ->with('success', 'Tạo hóa đơn thành công!');
     }
 
-    public function confirmPayment(Request $request, Invoice $invoice)
+    public function show(Invoice $invoice)
     {
-        // Authorization check
+        Gate::authorize('manage-invoices');
+
         if (auth()->user()->isLandlord() && $invoice->room->landlord_id !== auth()->id()) {
             abort(403);
+        }
+
+        $invoice->load(['room', 'contract.user']);
+        return view('admin.invoices.show', compact('invoice'));
+    }
+
+    public function confirmPayment(Request $request, Invoice $invoice)
+    {
+        Gate::authorize('manage-invoices');
+
+        if (auth()->user()->isLandlord() && $invoice->room->landlord_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Chống trùng thanh toán
+        if ($invoice->isPaid()) {
+            return back()->with('error', 'Hóa đơn đã được thanh toán trước đó!');
         }
 
         $request->validate([
@@ -114,15 +141,14 @@ class InvoiceController extends Controller
         ]);
 
         $invoice->update([
-            'status'         => 'paid',
+            'status'         => Invoice::STATUS_PAID,
             'payment_method' => $request->payment_method,
             'payment_ref'    => $request->payment_ref,
             'paid_at'        => now(),
         ]);
 
-        // Calculate and record commission for Super Admin
-        // Typically 5% of total amount
-        $rate = 5; // Can be pulled from settings if needed
+        // Ghi nhận hoa hồng
+        $rate = 5;
         $commissionAmount = ($invoice->total_amount * $rate) / 100;
 
         \App\Models\AdminCommission::create([
@@ -134,6 +160,24 @@ class InvoiceController extends Controller
         ]);
 
         return back()->with('success', 'Đã xác nhận thanh toán và ghi nhận phí hoa hồng!');
+    }
+
+    /**
+     * Hủy hóa đơn
+     */
+    public function cancel(Invoice $invoice)
+    {
+        Gate::authorize('manage-invoices');
+
+        if ($invoice->isPaid()) {
+            return back()->with('error', 'Không thể hủy hóa đơn đã thanh toán!');
+        }
+
+        $invoice->update([
+            'status' => Invoice::STATUS_CANCELLED,
+        ]);
+
+        return back()->with('success', 'Đã hủy hóa đơn!');
     }
 
     public function getUtilityData(Request $request)

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/user/css/bootstrap.min.css">
     <link rel="stylesheet" href="/user/css/style.css">
     <link rel="stylesheet" href="/user/css/responsive.css">
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" media="screen">
     <style>
         .notification-bell { position: relative; cursor: pointer; }
@@ -111,6 +111,9 @@
                                                 <a class="dropdown-item" href="{{ route('user.invoices') }}">
                                                     <i class="fa fa-file-text-o mr-1"></i> Hóa đơn của tôi
                                                 </a>
+                                                <a class="dropdown-item" href="{{ route('maintenance.index') }}">
+                                                    <i class="fa fa-wrench mr-1"></i> Yêu cầu bảo trì
+                                                </a>
                                                 <a class="dropdown-item" href="{{ route('profile.edit') }}">
                                                     <i class="fa fa-cog mr-1"></i> Hồ sơ
                                                 </a>
@@ -134,16 +137,20 @@
         </div>
     </header>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show m-0" role="alert" style="border-radius:0;">
-            <div class="container">{{ session('success') }}</div>
-            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show m-0" role="alert" style="border-radius:0;">
-            <div class="container">{{ session('error') }}</div>
-            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+    {{-- Validation Errors (inline) --}}
+    @if($errors->any())
+        <div style="background:#fff3cd;border-left:4px solid #dc3545;padding:16px 20px;margin:0;">
+            <div class="container">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <i class="fa fa-exclamation-circle" style="color:#dc3545;font-size:18px;"></i>
+                    <strong style="color:#dc3545;">Vui lòng kiểm tra lại:</strong>
+                </div>
+                <ul style="margin:0;padding-left:20px;font-size:14px;color:#333;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
         </div>
     @endif
 
@@ -184,12 +191,106 @@
         </div>
     </footer>
 
+    {{-- Toast Notification Container --}}
+    <div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;max-width:400px;"></div>
+
+    <style>
+        .toast-notification {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 16px 20px; border-radius: 14px;
+            background: #fff; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border-left: 4px solid; min-width: 300px;
+            animation: toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s ease;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        .toast-notification.toast-hiding { animation: toastSlideOut 0.3s ease forwards; }
+        .toast-notification.toast-success { border-left-color: #10b981; }
+        .toast-notification.toast-error   { border-left-color: #ef4444; }
+        .toast-notification.toast-warning { border-left-color: #f59e0b; }
+        .toast-notification.toast-info    { border-left-color: #3b82f6; }
+        .toast-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            font-size: 16px;
+        }
+        .toast-success .toast-icon { background: #ecfdf5; color: #10b981; }
+        .toast-error   .toast-icon { background: #fef2f2; color: #ef4444; }
+        .toast-warning .toast-icon { background: #fffbeb; color: #f59e0b; }
+        .toast-info    .toast-icon { background: #eff6ff; color: #3b82f6; }
+        .toast-body { flex: 1; }
+        .toast-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; color: #1e293b; }
+        .toast-message { font-size: 13px; color: #64748b; line-height: 1.4; }
+        .toast-close {
+            background: none; border: none; color: #94a3b8; cursor: pointer;
+            padding: 0; font-size: 18px; line-height: 1; flex-shrink: 0;
+        }
+        .toast-close:hover { color: #1e293b; }
+        .toast-progress {
+            position: absolute; bottom: 0; left: 4px; right: 0; height: 3px;
+            border-radius: 0 0 14px 0;
+            animation: toastProgress 5s linear forwards;
+        }
+        .toast-success .toast-progress { background: #10b981; }
+        .toast-error   .toast-progress { background: #ef4444; }
+        .toast-warning .toast-progress { background: #f59e0b; }
+        .toast-info    .toast-progress { background: #3b82f6; }
+        @keyframes toastSlideIn { from { opacity:0; transform:translateX(100px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes toastSlideOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(100px); } }
+        @keyframes toastProgress { from { width:100%; } to { width:0%; } }
+    </style>
+
     <script src="/user/js/jquery.min.js"></script>
     <script src="/user/js/bootstrap.bundle.min.js"></script>
     <script src="/user/js/jquery-3.0.0.min.js"></script>
     <script src="/user/js/jquery.mCustomScrollbar.concat.min.js"></script>
     <script src="/user/js/custom.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.pack.js"></script>
+    <script>
+        function showToast(type, title, message, duration) {
+            duration = duration || 5000;
+            var icons = {
+                success: '<i class="fa fa-check-circle"></i>',
+                error:   '<i class="fa fa-exclamation-triangle"></i>',
+                warning: '<i class="fa fa-exclamation-circle"></i>',
+                info:    '<i class="fa fa-info-circle"></i>',
+            };
+            var container = document.getElementById('toast-container');
+            var toast = document.createElement('div');
+            toast.className = 'toast-notification toast-' + type;
+            toast.style.position = 'relative';
+            toast.innerHTML =
+                '<div class="toast-icon">' + (icons[type] || icons.info) + '</div>' +
+                '<div class="toast-body">' +
+                    '<div class="toast-title">' + title + '</div>' +
+                    '<div class="toast-message">' + message + '</div>' +
+                '</div>' +
+                '<button class="toast-close" onclick="dismissToast(this)">&times;</button>' +
+                '<div class="toast-progress"></div>';
+            container.appendChild(toast);
+            setTimeout(function() { dismissToast(toast.querySelector('.toast-close')); }, duration);
+        }
+
+        function dismissToast(btn) {
+            var toast = btn.closest('.toast-notification');
+            if (!toast || toast.classList.contains('toast-hiding')) return;
+            toast.classList.add('toast-hiding');
+            setTimeout(function() { toast.remove(); }, 300);
+        }
+
+        @if(session('success'))
+            showToast('success', 'Thành công!', @json(session('success')));
+        @endif
+        @if(session('error'))
+            showToast('error', 'Lỗi!', @json(session('error')));
+        @endif
+        @if(session('warning'))
+            showToast('warning', 'Cảnh báo!', @json(session('warning')));
+        @endif
+        @if(session('info'))
+            showToast('info', 'Thông tin', @json(session('info')));
+        @endif
+    </script>
     @yield('scripts')
 </body>
 </html>

@@ -74,7 +74,7 @@
         const wardSelect = $('#ward');
 
         // Load provinces
-        fetch('https://provinces.open-api.vn/api/p/')
+        fetch('/api/regions/provinces')
             .then(response => response.json())
             .then(data => {
                 data.forEach(p => {
@@ -84,15 +84,15 @@
 
         // Load districts when province changes
         provinceSelect.on('change', function() {
-            const code = $(this).find(':selected').data('code');
+            const code = $(this).find(':selected').attr('data-code');
             districtSelect.empty().append('<option value="" style="color:#000;">Chọn Quận/Huyện</option>').prop('disabled', true);
             wardSelect.empty().append('<option value="" style="color:#000;">Chọn Phường/Xã</option>').prop('disabled', true);
-            
+
             if (code) {
-                fetch(`https://provinces.open-api.vn/api/p/${code}?depth=2`)
+                fetch(`/api/regions/districts/${code}`)
                     .then(response => response.json())
                     .then(data => {
-                        data.districts.forEach(d => {
+                        data.forEach(d => {
                             districtSelect.append(`<option value="${d.name}" data-code="${d.code}" style="color:#000;">${d.name}</option>`);
                         });
                         districtSelect.prop('disabled', false);
@@ -102,14 +102,14 @@
 
         // Load wards when district changes
         districtSelect.on('change', function() {
-            const code = $(this).find(':selected').data('code');
+            const code = $(this).find(':selected').attr('data-code');
             wardSelect.empty().append('<option value="" style="color:#000;">Chọn Phường/Xã</option>').prop('disabled', true);
-            
+
             if (code) {
-                fetch(`https://provinces.open-api.vn/api/d/${code}?depth=2`)
+                fetch(`/api/regions/wards/${code}`)
                     .then(response => response.json())
                     .then(data => {
-                        data.wards.forEach(w => {
+                        data.forEach(w => {
                             wardSelect.append(`<option value="${w.name}" style="color:#000;">${w.name}</option>`);
                         });
                         wardSelect.prop('disabled', false);
@@ -145,57 +145,217 @@
     </div>
 </div>
 
-<div class="our_room">
+<div class="featured-rooms-section">
+    <style>
+        .featured-rooms-section {
+            padding: 70px 0 80px;
+            background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+        }
+        .section-badge {
+            display: inline-block;
+            background: linear-gradient(135deg,#fef3c7,#fde68a);
+            color: #92400e;
+            font-size: 11px; font-weight: 800;
+            letter-spacing: .8px; text-transform: uppercase;
+            padding: 5px 16px; border-radius: 20px;
+            margin-bottom: 12px;
+        }
+        .section-heading {
+            font-size: 32px; font-weight: 800; color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .section-sub { color: #64748b; font-size: 15px; margin-bottom: 42px; }
+
+        /* Room Card */
+        .room-card {
+            background: #fff;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,.07);
+            transition: transform .25s, box-shadow .25s;
+            height: 100%;
+            display: flex; flex-direction: column;
+        }
+        .room-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 40px rgba(0,0,0,.13);
+        }
+        .room-card-img {
+            position: relative; overflow: hidden;
+            height: 200px;
+        }
+        .room-card-img img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transition: transform .4s;
+        }
+        .room-card:hover .room-card-img img { transform: scale(1.06); }
+        .room-card-badge {
+            position: absolute; top: 12px; left: 12px;
+            background: rgba(255,255,255,.92);
+            border-radius: 20px;
+            font-size: 10px; font-weight: 700;
+            padding: 3px 10px;
+        }
+        .room-card-badge.available { color: #16a34a; }
+        .room-card-badge.rented    { color: #dc2626; }
+        .room-card-price {
+            position: absolute; bottom: 12px; right: 12px;
+            background: linear-gradient(135deg,#f59e0b,#d97706);
+            color: #fff; font-weight: 800; font-size: 12px;
+            padding: 5px 12px; border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.2);
+        }
+        .room-card-body {
+            padding: 18px 20px 20px;
+            flex: 1; display: flex; flex-direction: column;
+        }
+        .room-card-title {
+            font-size: 15px; font-weight: 700; color: #1e293b;
+            line-height: 1.4; margin-bottom: 8px;
+            display: -webkit-box; -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .room-card-title a { color: inherit; text-decoration: none; }
+        .room-card-title a:hover { color: #f59e0b; }
+        .room-card-addr {
+            font-size: 11px; color: #94a3b8;
+            margin-bottom: 10px;
+            display: -webkit-box; -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .room-card-addr i { color: #ef4444; margin-right: 3px; }
+        .room-card-tags { margin-bottom: 12px; min-height: 22px; }
+        .room-card-tags .tag {
+            display: inline-block;
+            background: #f1f5f9; color: #475569;
+            font-size: 10px; font-weight: 600;
+            padding: 3px 9px; border-radius: 6px;
+            margin: 0 3px 3px 0;
+        }
+        .room-card-footer {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            margin-top: auto; padding-top: 12px;
+            border-top: 1.5px solid #f1f5f9;
+        }
+        .room-card-rating { font-size: 11px; color: #94a3b8; }
+        .room-card-rating .stars { color: #f59e0b; letter-spacing: 1px; }
+        .btn-room-detail {
+            background: linear-gradient(135deg,#1e293b,#334155);
+            color: #fff; border: none;
+            padding: 7px 18px; border-radius: 10px;
+            font-size: 12px; font-weight: 700;
+            text-decoration: none;
+            transition: all .2s;
+        }
+        .btn-room-detail:hover {
+            background: linear-gradient(135deg,#f59e0b,#d97706);
+            color: #fff; transform: translateY(-1px);
+        }
+        /* View All Button */
+        .btn-view-all {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg,#f59e0b,#d97706);
+            color: #fff; border: none;
+            padding: 13px 36px; border-radius: 50px;
+            font-size: 15px; font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 4px 18px rgba(245,158,11,.35);
+            transition: all .25s;
+        }
+        .btn-view-all:hover {
+            color: #fff; transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(245,158,11,.4);
+        }
+    </style>
+
     <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="titlepage">
-                    <h2>Phòng Trọ Nổi Bật</h2>
-                    <p>Khám phá các phòng còn trống hiện tại</p>
-                </div>
-            </div>
+        {{-- Section Header --}}
+        <div class="text-center mb-2">
+            <div class="section-badge">✨ Nổi bật</div>
         </div>
-        <div class="row">
+        <div class="text-center">
+            <h2 class="section-heading">Phòng Trọ Nổi Bật</h2>
+            <p class="section-sub">Khám phá các phòng còn trống chất lượng tốt nhất</p>
+        </div>
+
+        {{-- Cards --}}
+        <div class="row g-4 justify-content-center">
             @forelse($featuredRooms as $room)
-                <div class="col-md-4 col-sm-6 mb-4">
-                    <div id="serv_hover" class="room">
-                        <div class="room_img">
+                <div class="col-lg-4 col-md-6">
+                    <div class="room-card">
+                        {{-- Image --}}
+                        <div class="room-card-img">
                             <a href="{{ route('rooms.show', $room) }}">
                                 @if($room->images->first())
-                                    <figure><img src="{{ asset('storage/'.$room->images->first()->image_path) }}" alt="{{ $room->name }}" style="height:200px;object-fit:cover;width:100%;"></figure>
+                                    <img src="{{ asset('storage/'.$room->images->first()->image_path) }}"
+                                         alt="{{ $room->name }}">
                                 @else
-                                    <figure><img src="/user/images/room1.jpg" alt="{{ $room->name }}" style="height:200px;object-fit:cover;width:100%;"></figure>
+                                    <img src="/user/images/room1.jpg" alt="{{ $room->name }}">
                                 @endif
                             </a>
+                            <div class="room-card-badge {{ $room->status === 'available' ? 'available' : 'rented' }}">
+                                {{ $room->status === 'available' ? '● Còn trống' : '● Đã thuê' }}
+                            </div>
+                            <div class="room-card-price">
+                                {{ number_format($room->price) }}đ/tháng
+                            </div>
                         </div>
-                        <div class="bed_room">
-                            <h3><a href="{{ route('rooms.show', $room) }}">{{ $room->name }}</a></h3>
-                            <div class="mb-2">
+
+                        {{-- Body --}}
+                        <div class="room-card-body">
+                            <div class="room-card-title">
+                                <a href="{{ route('rooms.show', $room) }}">{{ $room->name }}</a>
+                            </div>
+
+                            @if($room->fullAddress())
+                                <div class="room-card-addr">
+                                    <i class="fa fa-map-marker"></i>{{ $room->fullAddress() }}
+                                </div>
+                            @endif
+
+                            <div class="room-card-tags">
                                 @if($room->amenities)
                                     @foreach(array_slice($room->amenities, 0, 3) as $amenity)
-                                        <span class="badge bg-light text-dark border me-1" style="font-size:10px;">{{ $amenity }}</span>
+                                        <span class="tag">{{ $amenity }}</span>
                                     @endforeach
                                 @endif
+                                @if($room->area)
+                                    <span class="tag"><i class="fa fa-expand"></i> {{ $room->area }}m²</span>
+                                @endif
                             </div>
-                            <p>{{ Str::limit($room->description, 60) }}</p>
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <strong style="color:#f9a825;">{{ number_format($room->price) }} VNĐ/tháng</strong>
-                                <a href="{{ route('rooms.show', $room) }}" class="btn btn-sm" style="background:#f9a825;color:#fff;border-radius:20px;padding:4px 14px;">Xem chi tiết</a>
+
+                            <div class="room-card-footer">
+                                <div class="room-card-rating">
+                                    @php $avg = round($room->reviews_avg_rating ?? 0); @endphp
+                                    <span class="stars">
+                                        @for($s=1;$s<=5;$s++){{ $s<=$avg ? '★' : '☆' }}@endfor
+                                    </span>
+                                    ({{ $room->reviews_count ?? 0 }})
+                                </div>
+                                <a href="{{ route('rooms.show', $room) }}" class="btn-room-detail">
+                                    Xem chi tiết →
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             @empty
-                <div class="col-12 text-center py-5">
-                    <p>Hiện chưa có phòng trống. Vui lòng quay lại sau.</p>
+                <div class="col-12 text-center py-5 text-muted">
+                    <i class="fa fa-home fa-3x mb-3 d-block" style="color:#cbd5e1;"></i>
+                    Hiện chưa có phòng trống. Vui lòng quay lại sau.
                 </div>
             @endforelse
         </div>
-        <div class="row">
-            <div class="col-12 text-center mt-3">
-                <a href="{{ route('rooms.index') }}" class="read_more">Xem tất cả phòng</a>
-            </div>
+
+        {{-- View All --}}
+        <div class="text-center mt-5">
+            <a href="{{ route('rooms.index') }}" class="btn-view-all">
+                <i class="fa fa-th-large"></i> Xem tất cả phòng
+            </a>
         </div>
     </div>
 </div>
 @endsection
+

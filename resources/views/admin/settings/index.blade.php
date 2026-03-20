@@ -23,11 +23,26 @@
                         <label class="form-label fw-semibold">Số điện thoại</label>
                         <input type="text" class="form-control" name="site_phone" value="{{ $settings['site_phone'] }}">
                     </div>
-                    <div class="col-md-12">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Email liên hệ</label>
+                        <input type="email" class="form-control" name="site_email" value="{{ $settings['site_email'] ?? '' }}" placeholder="contact@example.com">
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Địa chỉ</label>
                         <input type="text" class="form-control" name="site_address" value="{{ $settings['site_address'] }}">
                     </div>
                     <div class="col-md-12">
+                        <label class="form-label fw-semibold">Mô tả website <small class="text-muted">(hiện trên trang chủ)</small></label>
+                        <textarea class="form-control" name="site_description" rows="2" placeholder="Hệ thống quản lý phòng trọ hiện đại...">{{ $settings['site_description'] ?? '' }}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Tỉnh/TP mặc định <small class="text-muted">(cho khách chưa đăng nhập)</small></label>
+                        <select class="form-select" name="default_province" id="settingProvince">
+                            <option value="">-- Tất cả tỉnh --</option>
+                        </select>
+                        <div class="form-text">User đã đăng nhập sẽ thấy tỉnh họ đăng ký</div>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Logo nhà trọ</label>
                         <input type="file" class="form-control" name="logo" accept="image/*">
                         @if(\App\Models\Setting::get('site_logo'))
@@ -111,4 +126,21 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+// Load provinces for default_province dropdown
+const savedProv = @json(\App\Models\Setting::get('default_province', ''));
+fetch('/api/regions/provinces')
+    .then(r => r.json())
+    .then(data => {
+        const sel = document.getElementById('settingProvince');
+        data.forEach(p => {
+            const o = new Option(p.name, p.name);
+            if (p.name === savedProv) o.selected = true;
+            sel.appendChild(o);
+        });
+    });
+</script>
+@endpush
 @endsection

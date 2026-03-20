@@ -15,6 +15,9 @@ class SettingController extends Controller
             'site_name'                  => Setting::get('site_name', 'Nhà Trọ'),
             'site_address'               => Setting::get('site_address', ''),
             'site_phone'                 => Setting::get('site_phone', ''),
+            'site_email'                 => Setting::get('site_email', ''),
+            'site_description'           => Setting::get('site_description', ''),
+            'default_province'           => Setting::get('default_province', ''),
             'default_electricity_price'  => Setting::get('default_electricity_price', '3500'),
             'default_water_price'        => Setting::get('default_water_price', '15000'),
             'vietqr_bank_id'             => Setting::get('vietqr_bank_id', 'MB'),
@@ -31,6 +34,9 @@ class SettingController extends Controller
             'site_name'                 => 'required|string|max:255',
             'site_address'              => 'nullable|string|max:500',
             'site_phone'                => 'nullable|string|max:50',
+            'site_email'                => 'nullable|email|max:255',
+            'site_description'          => 'nullable|string|max:1000',
+            'default_province'          => 'nullable|string|max:100',
             'default_electricity_price' => 'required|numeric|min:0',
             'default_water_price'       => 'required|numeric|min:0',
             'vietqr_bank_id'            => 'nullable|string|max:50',
@@ -40,7 +46,8 @@ class SettingController extends Controller
         ]);
 
         $keys = [
-            'site_name', 'site_address', 'site_phone',
+            'site_name', 'site_address', 'site_phone', 'site_email', 'site_description',
+            'default_province',
             'default_electricity_price', 'default_water_price',
             'vietqr_bank_id', 'vietqr_account_no', 'momo_number',
         ];

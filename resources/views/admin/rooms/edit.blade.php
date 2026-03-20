@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 @section('title', 'Sửa Phòng - ' . $room->name)
 
+@section('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+@endsection
+
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="fs-3 mb-0">Sửa phòng: {{ $room->name }}</h1>
@@ -36,4 +40,8 @@
         </form>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 @endsection

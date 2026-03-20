@@ -122,12 +122,86 @@
             <i class="fa fa-home me-2"></i>{{ \App\Models\Setting::get('site_name', 'Nhà Trọ') }}
         </a>
         
+        {{-- Validation errors (keep inline near form) --}}
+        @if($errors->any())
+            <div class="alert alert-danger mb-3 border-0 shadow-sm" style="border-left:4px solid #dc3545 !important; border-radius:12px;">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="fa fa-exclamation-circle text-danger"></i>
+                    <strong>Vui lòng kiểm tra lại:</strong>
+                </div>
+                <ul class="mb-0 ps-3" style="font-size:13px;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @yield('content')
     </div>
-    
+
+    {{-- Toast Container --}}
+    <div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;max-width:380px;"></div>
+
+    <style>
+        .toast-notification {
+            display:flex;align-items:flex-start;gap:12px;
+            padding:16px 20px;border-radius:14px;
+            background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.15);
+            border-left:4px solid;min-width:280px;
+            animation:toastSlideIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+            transition:all 0.3s ease;font-family:'Inter',sans-serif;
+        }
+        .toast-notification.toast-hiding{animation:toastSlideOut 0.3s ease forwards;}
+        .toast-notification.toast-success{border-left-color:#10b981;}
+        .toast-notification.toast-error{border-left-color:#ef4444;}
+        .toast-notification.toast-warning{border-left-color:#f59e0b;}
+        .toast-notification.toast-info{border-left-color:#3b82f6;}
+        .toast-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
+        .toast-success .toast-icon{background:#ecfdf5;color:#10b981;}
+        .toast-error .toast-icon{background:#fef2f2;color:#ef4444;}
+        .toast-warning .toast-icon{background:#fffbeb;color:#f59e0b;}
+        .toast-info .toast-icon{background:#eff6ff;color:#3b82f6;}
+        .toast-body{flex:1;}
+        .toast-title{font-weight:600;font-size:14px;margin-bottom:2px;color:#1e293b;}
+        .toast-message{font-size:13px;color:#64748b;line-height:1.4;}
+        .toast-close{background:none;border:none;color:#94a3b8;cursor:pointer;padding:0;font-size:18px;line-height:1;flex-shrink:0;}
+        .toast-close:hover{color:#1e293b;}
+        .toast-progress{position:absolute;bottom:0;left:4px;right:0;height:3px;border-radius:0 0 14px 0;animation:toastProgress 5s linear forwards;}
+        .toast-success .toast-progress{background:#10b981;}
+        .toast-error .toast-progress{background:#ef4444;}
+        .toast-warning .toast-progress{background:#f59e0b;}
+        .toast-info .toast-progress{background:#3b82f6;}
+        @keyframes toastSlideIn{from{opacity:0;transform:translateX(100px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes toastSlideOut{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(100px);}}
+        @keyframes toastProgress{from{width:100%;}to{width:0%;}}
+    </style>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function showToast(type,title,message,duration){
+            duration=duration||5000;
+            var icons={success:'<i class="fa fa-check-circle"></i>',error:'<i class="fa fa-exclamation-triangle"></i>',warning:'<i class="fa fa-exclamation-circle"></i>',info:'<i class="fa fa-info-circle"></i>'};
+            var c=document.getElementById('toast-container'),t=document.createElement('div');
+            t.className='toast-notification toast-'+type;t.style.position='relative';
+            t.innerHTML='<div class="toast-icon">'+(icons[type]||icons.info)+'</div><div class="toast-body"><div class="toast-title">'+title+'</div><div class="toast-message">'+message+'</div></div><button class="toast-close" onclick="dismissToast(this)">&times;</button><div class="toast-progress"></div>';
+            c.appendChild(t);setTimeout(function(){dismissToast(t.querySelector('.toast-close'));},duration);
+        }
+        function dismissToast(b){var t=b.closest('.toast-notification');if(!t||t.classList.contains('toast-hiding'))return;t.classList.add('toast-hiding');setTimeout(function(){t.remove();},300);}
+
+        @if(session('success'))
+            showToast('success','Thành công!',@json(session('success')));
+        @endif
+        @if(session('error'))
+            showToast('error','Lỗi!',@json(session('error')));
+        @endif
+        @if(session('warning'))
+            showToast('warning','Cảnh báo!',@json(session('warning')));
+        @endif
+    </script>
     @yield('scripts')
 </body>
 </html>
+
