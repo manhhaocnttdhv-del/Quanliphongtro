@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', \App\Models\Setting::get('site_name', 'Nhà Trọ'))</title>
     <meta name="description" content="@yield('description', 'Hệ thống quản lý phòng trọ')">
-    <link rel="stylesheet" href="/user/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/user/css/style.css">
-    <link rel="stylesheet" href="/user/css/responsive.css">
+    <link rel="stylesheet" href="{{ asset('user/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('user/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('user/css/responsive.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" media="screen">
     <style>
@@ -240,11 +240,11 @@
         @keyframes toastProgress { from { width:100%; } to { width:0%; } }
     </style>
 
-    <script src="/user/js/jquery.min.js"></script>
-    <script src="/user/js/bootstrap.bundle.min.js"></script>
-    <script src="/user/js/jquery-3.0.0.min.js"></script>
-    <script src="/user/js/jquery.mCustomScrollbar.concat.min.js"></script>
-    <script src="/user/js/custom.js"></script>
+    <script src="{{ asset('user/js/jquery.min.js') }}"></script>
+    <script src="{{ asset('user/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('user/js/jquery-3.0.0.min.js') }}"></script>
+    <script src="{{ asset('user/js/jquery.mCustomScrollbar.concat.min.js') }}"></script>
+    <script src="{{ asset('user/js/custom.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.pack.js"></script>
     <script>
         function showToast(type, title, message, duration) {

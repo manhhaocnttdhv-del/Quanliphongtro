@@ -331,8 +331,13 @@
         @can('manage-settings')
             <li class="nav-section">Tùy chỉnh</li>
             <li>
+                <a class="nav-link {{ request()->routeIs('admin.sliders.*') ? 'active' : '' }}" href="{{ route('admin.sliders.index') }}">
+                    <i class="ti ti-photo"></i><span>Slider</span>
+                </a>
+            </li>
+            <li>
                 <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
-                    <i class="ti ti-settings"></i><span>Cài đặt</span>
+                    <i class="ti ti-settings"></i><span>Cài đặt website</span>
                 </a>
             </li>
         @endcan

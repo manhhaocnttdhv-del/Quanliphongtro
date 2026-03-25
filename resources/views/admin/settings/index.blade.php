@@ -13,6 +13,21 @@
             <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data">
                 @csrf
 
+                <h6 class="text-danger mb-3 border-bottom pb-2"><i class="ti ti-home me-1"></i>Trang chủ / Slider Hero</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Tiêu đề hộp tìm kiếm</label>
+                        <input type="text" class="form-control" name="hero_title"
+                               value="{{ $settings['hero_title'] }}" placeholder="Tìm Phòng Trọ">
+                        <div class="form-text">Hiển thị trong box tìm kiếm trên slider trang chủ.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Mô tả dưới tiêu đề</label>
+                        <input type="text" class="form-control" name="hero_subtitle"
+                               value="{{ $settings['hero_subtitle'] }}" placeholder="VD: Tìm phòng nhanh, ở sướng hơn">
+                    </div>
+                </div>
+
                 <h6 class="text-primary mb-3 border-bottom pb-2"><i class="ti ti-building me-1"></i>Thông tin nhà trọ</h6>
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">

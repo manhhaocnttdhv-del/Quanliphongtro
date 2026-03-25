@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\MaintenanceController as AdminMaintenanceController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\RegionController;
 use Illuminate\Support\Facades\Route;
@@ -134,6 +135,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // Sliders
+    Route::resource('sliders', SliderController::class);
+    Route::post('/sliders/{slider}/toggle', [SliderController::class, 'toggleActive'])->name('sliders.toggle');
 
     // Notifications (admin)
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');

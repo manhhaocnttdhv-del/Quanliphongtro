@@ -23,6 +23,8 @@ class SettingController extends Controller
             'vietqr_bank_id'             => Setting::get('vietqr_bank_id', 'MB'),
             'vietqr_account_no'          => Setting::get('vietqr_account_no', ''),
             'momo_number'                => Setting::get('momo_number', ''),
+            'hero_title'                 => Setting::get('hero_title', 'Tìm Phòng Trọ'),
+            'hero_subtitle'              => Setting::get('hero_subtitle', ''),
         ];
 
         return view('admin.settings.index', compact('settings'));
@@ -43,6 +45,8 @@ class SettingController extends Controller
             'vietqr_account_no'         => 'nullable|string|max:50',
             'momo_number'               => 'nullable|string|max:20',
             'logo'                      => 'nullable|image|max:2048',
+            'hero_title'                => 'nullable|string|max:255',
+            'hero_subtitle'             => 'nullable|string|max:500',
         ]);
 
         $keys = [
@@ -50,6 +54,7 @@ class SettingController extends Controller
             'default_province',
             'default_electricity_price', 'default_water_price',
             'vietqr_bank_id', 'vietqr_account_no', 'momo_number',
+            'hero_title', 'hero_subtitle',
         ];
 
         foreach ($keys as $key) {

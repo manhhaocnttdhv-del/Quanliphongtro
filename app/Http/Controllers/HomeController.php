@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
+use App\Models\Slider;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -18,6 +19,8 @@ class HomeController extends Controller
             ->take(6)
             ->get();
 
-        return view('home', compact('featuredRooms'));
+        $sliders = Slider::active()->get();
+
+        return view('home', compact('featuredRooms', 'sliders'));
     }
 }

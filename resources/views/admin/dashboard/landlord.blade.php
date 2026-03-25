@@ -20,7 +20,7 @@
                     <h2 class="mb-0 fw-bold">{{ $totalRooms }}</h2>
                 </div>
                 <div class="mt-3">
-                    <span class="badge bg-white bg-opacity-20 text-white small">{{ $rentedRooms }} phòng đang thuê</span>
+                    <span class="badge text-white small" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.25);">{{ $rentedRooms }} phòng đang thuê</span>
                 </div>
             </div>
         </div>
@@ -37,7 +37,7 @@
                     <h2 class="mb-0 fw-bold">{{ $availableRooms }}</h2>
                 </div>
                 <div class="mt-3">
-                    <span class="badge bg-white bg-opacity-20 text-white small">Sẵn sàng đăng bài</span>
+                    <span class="badge text-white small" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.25);">Sẵn sàng đăng bài</span>
                 </div>
             </div>
         </div>
@@ -54,7 +54,7 @@
                     <h2 class="mb-0 fw-bold">{{ $pendingRequests }}</h2>
                 </div>
                 <div class="mt-3">
-                    <span class="badge bg-white bg-opacity-20 text-white small">Cần phản hồi gấp</span>
+                    <span class="badge text-white small" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.25);">Cần phản hồi gấp</span>
                 </div>
             </div>
         </div>
@@ -71,7 +71,7 @@
                     <h2 class="mb-0 fw-bold">{{ number_format($monthlyIncome) }}đ</h2>
                 </div>
                 <div class="mt-3">
-                    <span class="badge bg-white bg-opacity-20 text-white small">Hoa hồng: {{ number_format($pendingCommission) }}đ</span>
+                    <span class="badge text-white small" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.25);">Hoa hồng: {{ number_format($pendingCommission) }}đ</span>
                 </div>
             </div>
         </div>
