@@ -1,10 +1,22 @@
 @extends('layouts.admin')
-@section('title', 'Cài Đặt Hệ Thống')
+@section('title', 'Cài Đặt')
 
 @section('content')
 <div class="mb-4">
-    <h1 class="fs-3 mb-1">Cài đặt hệ thống</h1>
-    <p class="text-muted">Cấu hình thông tin nhà trọ và thanh toán</p>
+    <h1 class="fs-3 mb-1">
+        @if(auth()->user()->role === 'landlord')
+            Cài đặt nhà trọ
+        @else
+            Cài đặt hệ thống
+        @endif
+    </h1>
+    <p class="text-muted">
+        @if(auth()->user()->role === 'landlord')
+            Cấu hình thông tin nhà trọ và thanh toán của bạn
+        @else
+            Cấu hình thông tin nhà trọ và thanh toán
+        @endif
+    </p>
 </div>
 
 <div class="row g-4">
@@ -13,6 +25,25 @@
             <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data">
                 @csrf
 
+                {{-- ===== CHỈ ADMIN mới thấy phần Hero/Slider & cấu hình toàn hệ thống ===== --}}
+                @if(auth()->user()->role !== 'landlord')
+                    <h6 class="text-danger mb-3 border-bottom pb-2"><i class="ti ti-home me-1"></i>Trang chủ / Slider Hero</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tiêu đề hộp tìm kiếm</label>
+                            <input type="text" class="form-control" name="hero_title"
+                                   value="{{ $settings['hero_title'] }}" placeholder="Tìm Phòng Trọ">
+                            <div class="form-text">Hiển thị trong box tìm kiếm trên slider trang chủ.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Mô tả dưới tiêu đề</label>
+                            <input type="text" class="form-control" name="hero_subtitle"
+                                   value="{{ $settings['hero_subtitle'] }}" placeholder="VD: Tìm phòng nhanh, ở sướng hơn">
+                        </div>
+                    </div>
+                @endif
+
+                {{-- ===== THÔNG TIN NHÀ TRỌ (cả 2 role đều thấy, nhưng landlord gọn hơn) ===== --}}
                 <h6 class="text-primary mb-3 border-bottom pb-2"><i class="ti ti-building me-1"></i>Thông tin nhà trọ</h6>
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
@@ -23,19 +54,39 @@
                         <label class="form-label fw-semibold">Số điện thoại</label>
                         <input type="text" class="form-control" name="site_phone" value="{{ $settings['site_phone'] }}">
                     </div>
-                    <div class="col-md-12">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Email liên hệ</label>
+                        <input type="email" class="form-control" name="site_email" value="{{ $settings['site_email'] ?? '' }}" placeholder="contact@example.com">
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Địa chỉ</label>
                         <input type="text" class="form-control" name="site_address" value="{{ $settings['site_address'] }}">
                     </div>
-                    <div class="col-md-12">
-                        <label class="form-label fw-semibold">Logo nhà trọ</label>
-                        <input type="file" class="form-control" name="logo" accept="image/*">
-                        @if(\App\Models\Setting::get('site_logo'))
-                            <div class="mt-2"><img src="{{ asset('storage/'.\App\Models\Setting::get('site_logo')) }}" height="50" class="rounded"></div>
-                        @endif
-                    </div>
+
+                    {{-- Chỉ admin mới cấu hình mô tả website, tỉnh mặc định toàn hệ thống, logo --}}
+                    @if(auth()->user()->role !== 'landlord')
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Mô tả website <small class="text-muted">(hiện trên trang chủ)</small></label>
+                            <textarea class="form-control" name="site_description" rows="2" placeholder="Hệ thống quản lý phòng trọ hiện đại...">{{ $settings['site_description'] ?? '' }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tỉnh/TP mặc định <small class="text-muted">(cho khách chưa đăng nhập)</small></label>
+                            <select class="form-select" name="default_province" id="settingProvince">
+                                <option value="">-- Tất cả tỉnh --</option>
+                            </select>
+                            <div class="form-text">User đã đăng nhập sẽ thấy tỉnh họ đăng ký</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Logo nhà trọ</label>
+                            <input type="file" class="form-control" name="logo" accept="image/*">
+                            @if(\App\Models\Setting::get('site_logo'))
+                                <div class="mt-2"><img src="{{ asset('storage/'.\App\Models\Setting::get('site_logo')) }}" height="50" class="rounded"></div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
 
+                {{-- ===== GIÁ ĐIỆN NƯỚC ===== --}}
                 <h6 class="text-warning mb-3 border-bottom pb-2"><i class="ti ti-bolt me-1"></i>Giá điện nước mặc định</h6>
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
@@ -48,6 +99,7 @@
                     </div>
                 </div>
 
+                {{-- ===== THANH TOÁN VIETQR ===== --}}
                 <h6 class="text-success mb-3 border-bottom pb-2"><i class="ti ti-qrcode me-1"></i>Thanh toán VietQR</h6>
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
@@ -61,6 +113,7 @@
                     </div>
                 </div>
 
+                {{-- ===== THANH TOÁN MOMO ===== --}}
                 <h6 class="mb-3 border-bottom pb-2" style="color:#ae2d68;"><i class="ti ti-brand-mastercard me-1"></i>Thanh toán MoMo</h6>
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
@@ -111,4 +164,23 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+// Chỉ load dropdown tỉnh nếu là admin (có element settingProvince)
+const settingProvince = document.getElementById('settingProvince');
+if (settingProvince) {
+    const savedProv = @json($settings['default_province']);
+    fetch('/api/regions/provinces')
+        .then(r => r.json())
+        .then(data => {
+            data.forEach(p => {
+                const o = new Option(p.name, p.name);
+                if (p.name === savedProv) o.selected = true;
+                settingProvince.appendChild(o);
+            });
+        });
+}
+</script>
+@endpush
 @endsection

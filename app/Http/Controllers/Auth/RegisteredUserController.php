@@ -33,7 +33,7 @@ class RegisteredUserController extends Controller
             'gender'         => ['nullable', 'string'],
             'province_name'  => ['required', 'string'],
             'district_name'  => ['required', 'string'],
-            'ward_name'      => ['required', 'string'],
+            'ward_name'      => ['nullable', 'string'],
             'address_detail' => ['nullable', 'string'],
         ]);
 

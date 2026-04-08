@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Models\RoomImage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class RoomController extends Controller
@@ -27,18 +28,26 @@ class RoomController extends Controller
             $query->where('status', $request->status);
         }
 
-        $rooms = $query->latest()->paginate(10)->withQueryString();
+        // Filter by approval status (for staff/admin)
+        if ($request->filled('approval')) {
+            $query->where('approval_status', $request->approval);
+        }
+
+        $rooms = $query->latest()->paginate(10)->appends($request->query());
 
         return view('admin.rooms.index', compact('rooms'));
     }
 
     public function create()
     {
+        Gate::authorize('manage-rooms');
         return view('admin.rooms.create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('manage-rooms');
+
         $request->validate([
             'name'                => 'required|string|max:255',
             'price'               => 'required|numeric|min:0',
@@ -64,9 +73,16 @@ class RoomController extends Controller
             'province_name', 'district_name', 'ward_name', 'address_detail',
             'latitude', 'longitude',
         ]);
+        $data['latitude']  = $request->filled('latitude')  ? (float) $request->latitude  : null;
+        $data['longitude'] = $request->filled('longitude') ? (float) $request->longitude : null;
 
         if (auth()->user()->isLandlord()) {
             $data['landlord_id'] = auth()->id();
+            $data['approval_status'] = Room::APPROVAL_PENDING; // Landlord: cần duyệt
+        }
+
+        if (auth()->user()->isSuperAdmin()) {
+            $data['approval_status'] = Room::APPROVAL_APPROVED; // Admin: auto duyệt
         }
 
         if ($request->filled('amenities_text')) {
@@ -88,13 +104,17 @@ class RoomController extends Controller
             }
         }
 
-        return redirect()->route('admin.rooms.index')
-            ->with('success', 'Thêm phòng thành công!');
+        $msg = auth()->user()->isLandlord()
+            ? 'Thêm phòng thành công! Phòng đang chờ duyệt.'
+            : 'Thêm phòng thành công!';
+
+        return redirect()->route('admin.rooms.index')->with('success', $msg);
     }
 
     public function edit(Room $room)
     {
-        // Authorization check
+        Gate::authorize('manage-rooms');
+
         if (auth()->user()->isLandlord() && $room->landlord_id !== auth()->id()) {
             abort(403);
         }
@@ -105,7 +125,8 @@ class RoomController extends Controller
 
     public function update(Request $request, Room $room)
     {
-        // Authorization check
+        Gate::authorize('manage-rooms');
+
         if (auth()->user()->isLandlord() && $room->landlord_id !== auth()->id()) {
             abort(403);
         }
@@ -134,6 +155,8 @@ class RoomController extends Controller
             'province_name', 'district_name', 'ward_name', 'address_detail',
             'latitude', 'longitude',
         ]);
+        $data['latitude']  = $request->filled('latitude')  ? (float) $request->latitude  : null;
+        $data['longitude'] = $request->filled('longitude') ? (float) $request->longitude : null;
 
         if ($request->filled('amenities_text')) {
             $data['amenities'] = array_map('trim', explode(',', $request->amenities_text));
@@ -162,7 +185,8 @@ class RoomController extends Controller
 
     public function destroy(Room $room)
     {
-        // Authorization check
+        Gate::authorize('manage-rooms');
+
         if (auth()->user()->isLandlord() && $room->landlord_id !== auth()->id()) {
             abort(403);
         }
@@ -178,7 +202,8 @@ class RoomController extends Controller
 
     public function destroyImage(RoomImage $image)
     {
-        // Authorization check
+        Gate::authorize('manage-rooms');
+
         if (auth()->user()->isLandlord() && $image->room->landlord_id !== auth()->id()) {
             abort(403);
         }
@@ -187,5 +212,25 @@ class RoomController extends Controller
         $image->delete();
 
         return back()->with('success', 'Đã xoá ảnh!');
+    }
+
+    // ─── Duyệt phòng (Staff / Admin) ─────────────────────────
+
+    public function approve(Room $room)
+    {
+        Gate::authorize('approve-rooms');
+
+        $room->update(['approval_status' => Room::APPROVAL_APPROVED]);
+
+        return back()->with('success', "Đã duyệt phòng \"{$room->name}\"!");
+    }
+
+    public function reject(Room $room)
+    {
+        Gate::authorize('approve-rooms');
+
+        $room->update(['approval_status' => Room::APPROVAL_REJECTED]);
+
+        return back()->with('success', "Đã từ chối phòng \"{$room->name}\"!");
     }
 }

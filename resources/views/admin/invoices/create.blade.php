@@ -64,7 +64,12 @@
                         </div>
                     </div>
 
-                    <div class="col-12">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Hạn thanh toán</label>
+                        <input type="date" class="form-control" name="due_date" value="{{ old('due_date', now()->addDays(15)->format('Y-m-d')) }}">
+                        <div class="form-text">Mặc định 15 ngày</div>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Ghi chú</label>
                         <textarea class="form-control" name="notes" rows="2">{{ old('notes') }}</textarea>
                     </div>

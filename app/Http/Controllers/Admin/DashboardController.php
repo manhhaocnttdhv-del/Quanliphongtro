@@ -19,6 +19,8 @@ class DashboardController extends Controller
 
         if ($user->isSuperAdmin()) {
             return $this->superAdminDashboard();
+        } elseif ($user->isStaff()) {
+            return $this->staffDashboard();
         } elseif ($user->isLandlord()) {
             return $this->landlordDashboard($user);
         }
@@ -37,12 +39,14 @@ class DashboardController extends Controller
         $pendingCommissions = AdminCommission::where('status', 'pending')->sum('amount');
 
         $recentLandlords = User::where('role', 'landlord')->latest()->take(5)->get();
+        $chartData = $this->getRevenueChartData();
 
         return view('admin.dashboard.super_admin', compact(
             'totalLandlords', 'totalRooms', 'totalTenants', 
             'totalRevenue', 'totalCommissions', 'pendingCommissions', 
             'chartData', 'recentLandlords'
         ));
+
     }
 
     private function landlordDashboard($user)
@@ -75,6 +79,21 @@ class DashboardController extends Controller
         return view('admin.dashboard.landlord', compact(
             'totalRooms', 'rentedRooms', 'availableRooms', 'pendingRequests',
             'monthlyIncome', 'pendingCommission', 'chartData', 'recentInvoices'
+        ));
+    }
+
+    private function staffDashboard()
+    {
+        $pendingRooms = Room::where('approval_status', 'pending')->count();
+        $pendingRequests = RentRequest::where('status', 'pending')->count();
+        $pendingMaintenance = \App\Models\MaintenanceRequest::where('status', 'pending')->count();
+        $totalRooms = Room::count();
+        $totalUsers = User::whereNotIn('role', ['super_admin'])->count();
+        $recentRooms = Room::where('approval_status', 'pending')->latest()->take(5)->get();
+
+        return view('admin.dashboard.staff', compact(
+            'pendingRooms', 'pendingRequests', 'pendingMaintenance',
+            'totalRooms', 'totalUsers', 'recentRooms'
         ));
     }
 

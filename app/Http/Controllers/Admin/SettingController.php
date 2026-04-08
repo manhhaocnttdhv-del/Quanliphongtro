@@ -11,15 +11,28 @@ class SettingController extends Controller
 {
     public function index()
     {
+        $user = auth()->user();
+
+        // Nếu default_province chưa được cấu hình → lấy tỉnh của user hiện tại làm mặc định
+        $defaultProvince = Setting::get('default_province', '');
+        if (empty($defaultProvince) && $user?->province_name) {
+            $defaultProvince = $user->province_name;
+        }
+
         $settings = [
             'site_name'                  => Setting::get('site_name', 'Nhà Trọ'),
             'site_address'               => Setting::get('site_address', ''),
             'site_phone'                 => Setting::get('site_phone', ''),
+            'site_email'                 => Setting::get('site_email', ''),
+            'site_description'           => Setting::get('site_description', ''),
+            'default_province'           => $defaultProvince,
             'default_electricity_price'  => Setting::get('default_electricity_price', '3500'),
             'default_water_price'        => Setting::get('default_water_price', '15000'),
             'vietqr_bank_id'             => Setting::get('vietqr_bank_id', 'MB'),
             'vietqr_account_no'          => Setting::get('vietqr_account_no', ''),
             'momo_number'                => Setting::get('momo_number', ''),
+            'hero_title'                 => Setting::get('hero_title', 'Tìm Phòng Trọ'),
+            'hero_subtitle'              => Setting::get('hero_subtitle', ''),
         ];
 
         return view('admin.settings.index', compact('settings'));
@@ -31,18 +44,25 @@ class SettingController extends Controller
             'site_name'                 => 'required|string|max:255',
             'site_address'              => 'nullable|string|max:500',
             'site_phone'                => 'nullable|string|max:50',
+            'site_email'                => 'nullable|email|max:255',
+            'site_description'          => 'nullable|string|max:1000',
+            'default_province'          => 'nullable|string|max:100',
             'default_electricity_price' => 'required|numeric|min:0',
             'default_water_price'       => 'required|numeric|min:0',
             'vietqr_bank_id'            => 'nullable|string|max:50',
             'vietqr_account_no'         => 'nullable|string|max:50',
             'momo_number'               => 'nullable|string|max:20',
             'logo'                      => 'nullable|image|max:2048',
+            'hero_title'                => 'nullable|string|max:255',
+            'hero_subtitle'             => 'nullable|string|max:500',
         ]);
 
         $keys = [
-            'site_name', 'site_address', 'site_phone',
+            'site_name', 'site_address', 'site_phone', 'site_email', 'site_description',
+            'default_province',
             'default_electricity_price', 'default_water_price',
             'vietqr_bank_id', 'vietqr_account_no', 'momo_number',
+            'hero_title', 'hero_subtitle',
         ];
 
         foreach ($keys as $key) {

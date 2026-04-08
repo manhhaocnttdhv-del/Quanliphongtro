@@ -2,9 +2,14 @@
 @section('title', 'Quản Lý Hợp Đồng')
 
 @section('content')
-<div class="mb-4">
-    <h1 class="fs-3 mb-1">Danh sách hợp đồng</h1>
-    <p class="text-muted mb-0">{{ $contracts->total() }} hợp đồng</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fs-3 fw-bold mb-1">📄 Quản Lý Hợp Đồng</h1>
+        <p class="text-muted mb-0">{{ $contracts->total() }} hợp đồng</p>
+    </div>
+    <a href="{{ route('admin.contracts.create') }}" class="btn btn-primary">
+        <i class="ti ti-file-plus me-1"></i>Tạo hợp đồng mới
+    </a>
 </div>
 
 <div class="card">
