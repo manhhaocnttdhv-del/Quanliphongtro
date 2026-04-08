@@ -54,12 +54,15 @@ class RoomController extends Controller
             'district_name'       => 'required|string',
             'ward_name'           => 'required|string',
             'address_detail'      => 'nullable|string',
+            'latitude'            => 'nullable|numeric',
+            'longitude'           => 'nullable|numeric',
         ]);
 
         $data = $request->only([
             'name', 'price', 'area', 'floor', 'description',
             'electricity_price', 'water_price', 'service_fee',
             'province_name', 'district_name', 'ward_name', 'address_detail',
+            'latitude', 'longitude',
         ]);
 
         if (auth()->user()->isLandlord()) {
@@ -121,12 +124,15 @@ class RoomController extends Controller
             'district_name'       => 'required|string',
             'ward_name'           => 'required|string',
             'address_detail'      => 'nullable|string',
+            'latitude'            => 'nullable|numeric',
+            'longitude'           => 'nullable|numeric',
         ]);
 
         $data = $request->only([
             'name', 'price', 'area', 'floor', 'description',
             'electricity_price', 'water_price', 'service_fee',
             'province_name', 'district_name', 'ward_name', 'address_detail',
+            'latitude', 'longitude',
         ]);
 
         if ($request->filled('amenities_text')) {

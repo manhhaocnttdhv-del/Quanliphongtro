@@ -173,6 +173,20 @@
                 </a>
             </li>
             <li>
+                <a class="nav-link {{ request()->routeIs('admin.maintenance.*') ? 'active' : '' }}" href="{{ route('admin.maintenance.index') }}">
+                    <i class="ti ti-tool"></i><span>Bảo trì 
+                        @php 
+                            $pendingMaint = \App\Models\MaintenanceRequest::where('status','pending');
+                            if(auth()->user()->isLandlord()) {
+                                $pendingMaint->whereHas('room', fn($q) => $q->where('landlord_id', auth()->id()));
+                            }
+                            $pendingMaintCount = $pendingMaint->count();
+                        @endphp
+                        @if($pendingMaintCount > 0)<span class="badge bg-warning ms-auto">{{ $pendingMaintCount }}</span>@endif
+                    </span>
+                </a>
+            </li>
+            <li>
                 <a class="nav-link {{ request()->routeIs('admin.commissions.*') ? 'active' : '' }}" href="{{ route('admin.commissions.index') }}">
                     <i class="ti ti-coin"></i><span>Phí hoa hồng</span>
                 </a>

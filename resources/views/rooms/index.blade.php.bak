@@ -90,44 +90,39 @@
                         <input type="text" class="form-control" name="search" value="{{ request('search') }}" placeholder="Tên phòng, mô tả...">
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label small fw-bold text-dark">Tỉnh/Thành phố</label>
+                        <label class="form-label small fw-bold text-dark">Giá tối đa</label>
+                        <input type="number" class="form-control" name="max_price" value="{{ request('max_price') }}" placeholder="VD: 3,000,000">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-dark">Tỉnh/TP</label>
                         <select name="province" id="province" class="form-select">
                             <option value="">Tất cả</option>
-                            @if(request('province'))
-                                <option value="{{ request('province') }}" selected>{{ request('province') }}</option>
-                            @endif
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small fw-bold text-dark">Quận/Huyện</label>
-                        <select name="district" id="district" class="form-select" {{ request('province') ? '' : 'disabled' }}>
+                        <select name="district" id="district" class="form-select" disabled>
                             <option value="">Tất cả</option>
-                            @if(request('district'))
-                                <option value="{{ request('district') }}" selected>{{ request('district') }}</option>
-                            @endif
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label small fw-bold text-dark">Phường/Xã</label>
-                        <select name="ward" id="ward" class="form-select" {{ request('district') ? '' : 'disabled' }}>
-                            <option value="">Tất cả</option>
-                            @if(request('ward'))
-                                <option value="{{ request('ward') }}" selected>{{ request('ward') }}</option>
-                            @endif
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label small fw-bold text-dark">Giá tối đa</label>
-                        <input type="number" class="form-control" name="max_price" value="{{ request('max_price') }}" placeholder="VD: 3,000,000">
-                    </div>
-                    <div class="col-md-1">
                         <label class="form-label d-none d-md-block">&nbsp;</label>
-                        <button type="submit" class="btn btn-warning btn-search w-100 shadow-sm text-dark p-2">
-                            <i class="fa fa-search"></i>
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning btn-search flex-grow-1 shadow-sm text-dark">
+                                <i class="fa fa-search me-1"></i> Tìm
+                            </button>
+                            <button type="button" id="toggleMap" class="btn btn-outline-dark btn-search px-3 shadow-sm">
+                                <i class="fa fa-map-marker"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
+        </div>
+
+        {{-- Map View (Hidden by default) --}}
+        <div id="mapWrapper" class="mb-5 d-none">
+            <div id="searchMap" style="height: 500px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.03);"></div>
         </div>
 
         <div class="row g-4">
@@ -197,4 +192,103 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    $(document).ready(function() {
+        // Location selection logic
+        const provinceSelect = $('#province');
+        const districtSelect = $('#district');
+        const wardSelect = $('#ward');
+
+        // Load provinces
+        fetch('https://provinces.open-api.vn/api/p/')
+            .then(response => response.json())
+            .then(data => {
+                const currentProvince = "{{ request('province') }}";
+                data.forEach(p => {
+                    const selected = (p.name === currentProvince) ? 'selected' : '';
+                    provinceSelect.append(`<option value="${p.name}" data-code="${p.code}" ${selected}>${p.name}</option>`);
+                });
+                if (currentProvince) provinceSelect.trigger('change');
+            });
+
+        provinceSelect.on('change', function() {
+            const code = $(this).find(':selected').data('code');
+            districtSelect.empty().append('<option value="">Tất cả</option>').prop('disabled', true);
+            if (code) {
+                fetch(`https://provinces.open-api.vn/api/p/${code}?depth=2`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const currentDistrict = "{{ request('district') }}";
+                        data.districts.forEach(d => {
+                            const selected = (d.name === currentDistrict) ? 'selected' : '';
+                            districtSelect.append(`<option value="${d.name}" data-code="${d.code}" ${selected}>${d.name}</option>`);
+                        });
+                        districtSelect.prop('disabled', false);
+                        if (currentDistrict) districtSelect.trigger('change');
+                    });
+            }
+        });
+
+        districtSelect.on('change', function() {
+            const code = $(this).find(':selected').data('code');
+            wardSelect.empty().append('<option value="">Tất cả</option>').prop('disabled', true);
+            if (code) {
+                fetch(`https://provinces.open-api.vn/api/d/${code}?depth=2`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const currentWard = "{{ request('ward') }}";
+                        data.wards.forEach(w => {
+                            const selected = (w.name === currentWard) ? 'selected' : '';
+                            wardSelect.append(`<option value="${w.name}" ${selected}>${w.name}</option>`);
+                        });
+                        wardSelect.prop('disabled', false);
+                    });
+            }
+        });
+
+        // Map logic
+        let map;
+        const rooms = @json($allRooms);
+        
+        $('#toggleMap').on('click', function() {
+            $('#mapWrapper').toggleClass('d-none');
+            $(this).toggleClass('btn-warning btn-outline-dark');
+            
+            if (!map && !$('#mapWrapper').hasClass('d-none')) {
+                const center = rooms.length > 0 && rooms[0].latitude 
+                    ? [rooms[0].latitude, rooms[0].longitude] 
+                    : [10.762622, 106.660172];
+
+                map = L.map('searchMap').setView(center, 12);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+
+                rooms.forEach(room => {
+                    if (room.latitude && room.longitude) {
+                        const marker = L.marker([room.latitude, room.longitude]).addTo(map);
+                        marker.bindPopup(`
+                            <div class="p-2">
+                                <h6 class="fw-bold mb-1">${room.name}</h6>
+                                <p class="small text-muted mb-2">${room.address_detail}</p>
+                                <div class="text-warning fw-bold mb-2">${new Intl.NumberFormat('vi-VN').format(room.price)}đ</div>
+                                <a href="/rooms/${room.id}" class="btn btn-sm btn-primary w-100 text-white">Chi tiết</a>
+                            </div>
+                        `, { minWidth: 200 });
+                    }
+                });
+            }
+            if (map) {
+                setTimeout(() => map.invalidateSize(), 100);
+            }
+        });
+    });
+</script>
 @endsection

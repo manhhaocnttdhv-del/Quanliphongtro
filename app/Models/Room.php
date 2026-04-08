@@ -13,6 +13,7 @@ class Room extends Model
         'landlord_id', 'name', 'price', 'area', 'floor', 'description', 
         'amenities', 'electricity_price', 'water_price', 'service_fee', 'status',
         'province_name', 'district_name', 'ward_name', 'address_detail',
+        'latitude', 'longitude',
     ];
 
     public function landlord()
@@ -59,6 +60,16 @@ class Room extends Model
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function maintenanceRequests()
+    {
+        return $this->hasMany(MaintenanceRequest::class);
+    }
+
+    public function members()
+    {
+        return $this->hasMany(RoomMember::class);
     }
 
     public function activeContract()

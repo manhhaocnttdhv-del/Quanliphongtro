@@ -114,6 +114,9 @@
                                                 <a class="dropdown-item" href="{{ route('profile.edit') }}">
                                                     <i class="fa fa-cog mr-1"></i> Hồ sơ
                                                 </a>
+                                                <a class="dropdown-item" href="{{ route('maintenance.index') }}">
+                                                    <i class="fa fa-wrench mr-1"></i> Báo cáo sự cố
+                                                </a>
                                                 <div class="dropdown-divider"></div>
                                                 <form method="POST" action="{{ route('logout') }}">
                                                     @csrf

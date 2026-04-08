@@ -32,9 +32,10 @@ class RoomController extends Controller
             $query->where('ward_name', $request->ward);
         }
 
+        $allRooms = $query->get(['id', 'name', 'price', 'latitude', 'longitude', 'address_detail']);
         $rooms = $query->latest()->paginate(9)->withQueryString();
 
-        return view('rooms.index', compact('rooms'));
+        return view('rooms.index_test', compact('rooms', 'allRooms'));
     }
 
     public function show(Room $room)
