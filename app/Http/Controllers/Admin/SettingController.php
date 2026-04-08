@@ -11,13 +11,21 @@ class SettingController extends Controller
 {
     public function index()
     {
+        $user = auth()->user();
+
+        // Nếu default_province chưa được cấu hình → lấy tỉnh của user hiện tại làm mặc định
+        $defaultProvince = Setting::get('default_province', '');
+        if (empty($defaultProvince) && $user?->province_name) {
+            $defaultProvince = $user->province_name;
+        }
+
         $settings = [
             'site_name'                  => Setting::get('site_name', 'Nhà Trọ'),
             'site_address'               => Setting::get('site_address', ''),
             'site_phone'                 => Setting::get('site_phone', ''),
             'site_email'                 => Setting::get('site_email', ''),
             'site_description'           => Setting::get('site_description', ''),
-            'default_province'           => Setting::get('default_province', ''),
+            'default_province'           => $defaultProvince,
             'default_electricity_price'  => Setting::get('default_electricity_price', '3500'),
             'default_water_price'        => Setting::get('default_water_price', '15000'),
             'vietqr_bank_id'             => Setting::get('vietqr_bank_id', 'MB'),

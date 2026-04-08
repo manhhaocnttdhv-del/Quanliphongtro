@@ -3,317 +3,289 @@
 @section('card-class', 'register-card')
 
 @section('content')
-    <h3 class="text-center mb-4 fw-bold" style="color: #444;">Tham gia cùng chúng tôi</h3>
+    <div class="auth-header">
+        <h2>Tạo tài khoản</h2>
+        <p>Tham gia cùng hàng nghìn người dùng</p>
+    </div>
 
-    <form method="POST" action="{{ route('register') }}" id="registerForm">
+    <form method="POST" action="{{ route('register') }}" id="registerForm" class="auth-form">
         @csrf
-        <div class="row g-3">
-            {{-- Role Selection --}}
-            <div class="col-12 mb-3">
-                <label class="form-label d-block text-center fw-bold mb-3">Bạn tham gia với vai trò nào?</label>
-                <div class="nav nav-pills nav-pills-custom justify-content-center" id="role-tab" role="tablist">
-                    @php $currentRole = old('role', 'tenant'); @endphp
-                    <button class="nav-link {{ $currentRole == 'tenant' ? 'active' : '' }} me-2" id="role-tenant-tab" data-bs-toggle="pill" type="button" onclick="setRole('tenant')">
-                        <i class="fa fa-user me-2"></i>Tôi là Người thuê
-                    </button>
-                    <button class="nav-link {{ $currentRole == 'landlord' ? 'active' : '' }}" id="role-landlord-tab" data-bs-toggle="pill" type="button" onclick="setRole('landlord')">
-                        <i class="fa fa-home me-2"></i>Tôi là Chủ trọ
-                    </button>
-                </div>
-                <input type="hidden" name="role" id="role_input" value="{{ $currentRole }}">
-            </div>
 
-            {{-- Basic Info --}}
-            <div class="col-md-6 mt-0">
-                <label for="name" class="form-label">Họ và tên</label>
-                <input id="name" type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required autofocus placeholder="VD: Nguyễn Văn A">
-                @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
-            <div class="col-md-6 mt-0">
-                <label for="phone" class="form-label">Số điện thoại</label>
-                <input id="phone" type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}" required placeholder="VD: 0987654321">
-                @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
-            <div class="col-12">
-                <label for="email" class="form-label">Email</label>
-                <input id="email" type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required placeholder="VD: email@example.com">
-                @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
-            <div class="col-md-4">
-                <label for="id_card" class="form-label">Số CCCD</label>
-                <input id="id_card" type="text" name="id_card" class="form-control @error('id_card') is-invalid @enderror" value="{{ old('id_card') }}" placeholder="12 số">
-                @error('id_card') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
-            <div class="col-md-4">
-                <label for="dob" class="form-label">Ngày sinh</label>
-                <input id="dob" type="date" name="dob" class="form-control @error('dob') is-invalid @enderror" value="{{ old('dob') }}">
-                @error('dob') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
-            <div class="col-md-4">
-                <label for="gender" class="form-label">Giới tính</label>
-                <select id="gender" name="gender" class="form-select @error('gender') is-invalid @enderror">
-                    <option value="">Chọn...</option>
-                    <option value="Nam" {{ old('gender') == 'Nam' ? 'selected' : '' }}>Nam</option>
-                    <option value="Nữ" {{ old('gender') == 'Nữ' ? 'selected' : '' }}>Nữ</option>
-                    <option value="Khác" {{ old('gender') == 'Khác' ? 'selected' : '' }}>Khác</option>
-                </select>
-                @error('gender') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
+        {{-- Role Selection --}}
+        <div class="role-selector">
+            @php $currentRole = old('role', 'tenant'); @endphp
+            <button type="button"
+                class="role-btn {{ $currentRole == 'tenant' ? 'active' : '' }}"
+                onclick="setRole('tenant', this)">
+                <i class="fa fa-user"></i>
+                <span>Người thuê</span>
+            </button>
+            <button type="button"
+                class="role-btn {{ $currentRole == 'landlord' ? 'active' : '' }}"
+                onclick="setRole('landlord', this)">
+                <i class="fa fa-home"></i>
+                <span>Chủ trọ</span>
+            </button>
+            <input type="hidden" name="role" id="role_input" value="{{ $currentRole }}">
+        </div>
 
-            {{-- Location --}}
-            <div class="col-md-4">
-                <label class="form-label">Tỉnh / Thành phố</label>
-                <select id="province" name="province_name" class="form-select @error('province_name') is-invalid @enderror" required>
+        {{-- Họ tên & SĐT --}}
+        <div class="form-row-2">
+            <div class="form-group">
+                <label for="name"><i class="fa fa-user"></i> Họ và tên</label>
+                <input id="name" type="text" name="name"
+                    class="form-input @error('name') is-invalid @enderror"
+                    value="{{ old('name') }}" required autofocus placeholder="Nguyễn Văn A">
+                @error('name') <span class="error-msg">{{ $message }}</span> @enderror
+            </div>
+            <div class="form-group">
+                <label for="phone"><i class="fa fa-phone"></i> Số điện thoại</label>
+                <input id="phone" type="text" name="phone"
+                    class="form-input @error('phone') is-invalid @enderror"
+                    value="{{ old('phone') }}" required placeholder="0987654321">
+                @error('phone') <span class="error-msg">{{ $message }}</span> @enderror
+            </div>
+        </div>
+
+        {{-- Email --}}
+        <div class="form-group">
+            <label for="email"><i class="fa fa-envelope"></i> Email</label>
+            <input id="email" type="email" name="email"
+                class="form-input @error('email') is-invalid @enderror"
+                value="{{ old('email') }}" required placeholder="email@example.com">
+            @error('email') <span class="error-msg">{{ $message }}</span> @enderror
+        </div>
+
+        {{-- Khu vực --}}
+        <div class="section-divider">
+            <span><i class="fa fa-map-marker-alt"></i> Khu vực của bạn</span>
+            <small>Dùng để hiển thị phòng gần bạn</small>
+        </div>
+
+        <div class="form-row-3">
+            <div class="form-group">
+                <label for="province"><i class="fa fa-city"></i> Tỉnh / Thành phố</label>
+                <select id="province" name="province_name"
+                    class="form-input form-select-custom @error('province_name') is-invalid @enderror"
+                    required>
                     <option value="">Chọn Tỉnh/TP</option>
                 </select>
+                @error('province_name') <span class="error-msg">{{ $message }}</span> @enderror
             </div>
-            <div class="col-md-4">
-                <label class="form-label">Quận / Huyện</label>
-                <select id="district" name="district_name" class="form-select @error('district_name') is-invalid @enderror" required disabled>
+            <div class="form-group">
+                <label for="district"><i class="fa fa-map"></i> Quận / Huyện</label>
+                <select id="district" name="district_name"
+                    class="form-input form-select-custom @error('district_name') is-invalid @enderror"
+                    required disabled>
                     <option value="">Chọn Quận/Huyện</option>
                 </select>
+                @error('district_name') <span class="error-msg">{{ $message }}</span> @enderror
             </div>
-            <div class="col-md-4" id="wardWrapper" style="display:none;">
-                <label class="form-label">Phường / Xã <small class="text-muted">(Tùy chọn)</small></label>
-                <select id="ward" name="ward_name" class="form-select @error('ward_name') is-invalid @enderror" disabled>
+            <div class="form-group" id="wardWrapper" style="display:none;">
+                <label for="ward"><i class="fa fa-map-pin"></i> Phường / Xã <small class="text-muted">(Tùy chọn)</small></label>
+                <select id="ward" name="ward_name"
+                    class="form-input form-select-custom"
+                    disabled>
                     <option value="">Chọn Phường/Xã</option>
                 </select>
             </div>
-            <div class="col-12">
-                <label for="address_detail" class="form-label">Địa chỉ chi tiết (Thôn/Xóm/Số nhà)</label>
-                <input id="address_detail" type="text" name="address_detail" class="form-control @error('address_detail') is-invalid @enderror" value="{{ old('address_detail') }}" placeholder="VD: Số 123, đường ABC">
-                @error('address_detail') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
+        </div>
 
+        {{-- Địa chỉ chi tiết --}}
+        <div class="form-group">
+            <label for="address_detail"><i class="fa fa-map-marker-alt"></i> Địa chỉ chi tiết <small class="text-muted">(Tùy chọn)</small></label>
+            <input id="address_detail" type="text" name="address_detail"
+                class="form-input @error('address_detail') is-invalid @enderror"
+                value="{{ old('address_detail') }}"
+                placeholder="Số nhà, tên đường, khu phố...">
+            @error('address_detail') <span class="error-msg">{{ $message }}</span> @enderror
+        </div>
 
-            {{-- Password --}}
-            <div class="col-md-6">
-                <label for="password" class="form-label">Mật khẩu</label>
-                <input id="password" type="password" name="password" class="form-control @error('password') is-invalid @enderror" required autocomplete="new-password">
-                @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        {{-- Mật khẩu --}}
+        <div class="form-row-2">
+            <div class="form-group">
+                <label for="password"><i class="fa fa-lock"></i> Mật khẩu</label>
+                <div class="input-eye-wrap">
+                    <input id="password" type="password" name="password"
+                        class="form-input @error('password') is-invalid @enderror"
+                        required autocomplete="new-password" placeholder="Tối thiểu 8 ký tự">
+                    <button type="button" class="eye-btn" onclick="togglePwd('password', this)">
+                        <i class="fa fa-eye"></i>
+                    </button>
+                </div>
+                @error('password') <span class="error-msg">{{ $message }}</span> @enderror
             </div>
-            <div class="col-md-6">
-                <label for="password_confirmation" class="form-label">Xác nhận mật khẩu</label>
-                <input id="password_confirmation" type="password" name="password_confirmation" class="form-control" required autocomplete="new-password">
+            <div class="form-group">
+                <label for="password_confirmation"><i class="fa fa-lock"></i> Xác nhận mật khẩu</label>
+                <div class="input-eye-wrap">
+                    <input id="password_confirmation" type="password" name="password_confirmation"
+                        class="form-input"
+                        required autocomplete="new-password" placeholder="Nhập lại mật khẩu">
+                    <button type="button" class="eye-btn" onclick="togglePwd('password_confirmation', this)">
+                        <i class="fa fa-eye"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary-custom w-100 mt-4 mb-3">Hoàn tất đăng ký</button>
+        <button type="submit" class="btn-submit">
+            <i class="fa fa-user-plus me-2"></i> Tạo tài khoản
+        </button>
 
-        <div class="text-center mt-2">
-            <span class="text-muted">Đã có tài khoản?</span>
-            <a href="{{ route('login') }}" class="text-primary text-decoration-none fw-semibold">Đăng nhập</a>
-        </div>
+        <p class="auth-switch">
+            Đã có tài khoản?
+            <a href="{{ route('login') }}">Đăng nhập</a>
+        </p>
     </form>
+@endsection
+
+@section('styles')
+<style>
+    .register-card { max-width: 680px; }
+
+    .section-divider {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: #f0f4ff;
+        border-radius: 8px;
+        border-left: 3px solid #6366f1;
+        margin: 4px 0;
+    }
+    .section-divider span {
+        font-size: .82rem;
+        font-weight: 600;
+        color: #4f46e5;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .section-divider small {
+        font-size: .75rem;
+        color: #6b7280;
+    }
+
+    .form-row-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+    }
+    @media (max-width: 600px) {
+        .form-row-3 { grid-template-columns: 1fr; }
+    }
+
+    .form-select-custom {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 32px !important;
+        cursor: pointer;
+    }
+    .form-select-custom:disabled {
+        background-color: #f9fafb;
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+</style>
 @endsection
 
 @section('scripts')
 <script>
-    function setRole(role) {
+    function setRole(role, btn) {
         document.getElementById('role_input').value = role;
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
     }
 
-    // ─── Parse toạ độ từ nhiều định dạng link ─────
-    function extractLatLng(input) {
-        input = (input || '').trim();
-        let m;
-        m = input.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
-        if (m) return [+m[1], +m[2]];
-        m = input.match(/[?&]q=(-?\d+\.?\d*)[,+%20]+(-?\d+\.?\d*)/);
-        if (m) return [+m[1], +m[2]];
-        m = input.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
-        if (m) return [+m[1], +m[2]];
-        m = input.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
-        if (m) return [+m[1], +m[2]];
-        m = input.match(/^@?(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
-        if (m) return [+m[1], +m[2]];
-        return null;
-    }
+    (function () {
+        const oldProv = @json(old('province_name'));
+        const oldDist = @json(old('district_name'));
+        const oldWard = @json(old('ward_name'));
 
-    // ─── Bỏ prefix hành chính VN khi so sánh ─────
-    function stripVN(s) {
-        return (s || '').replace(/^(tỉnh|thành phố|tp\.?|thị xã|thị trấn|quận|huyện|phường|xã)\s+/i, '').trim();
-    }
+        const selProv = document.getElementById('province');
+        const selDist = document.getElementById('district');
+        const selWard = document.getElementById('ward');
+        const wardWrapper = document.getElementById('wardWrapper');
 
-    $(document).ready(function() {
-        const $prov = $('#province'), $dist = $('#district'), $ward = $('#ward');
+        // ── helpers ──────────────────────────────────
+        function addOptions(sel, items, valueKey, labelKey, codeKey) {
+            items.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item[valueKey];
+                opt.textContent = item[labelKey];
+                if (codeKey) opt.dataset.code = item[codeKey];
+                sel.appendChild(opt);
+            });
+        }
 
-        // Load tỉnh từ local DB API
+        function resetSelect(sel, placeholder) {
+            sel.innerHTML = `<option value="">${placeholder}</option>`;
+            sel.disabled = true;
+        }
+
+        // ── Load tỉnh ────────────────────────────────
+        const DEFAULT_PROVINCE = 'Tỉnh Nghệ An';
+        const DEFAULT_DISTRICT = 'Thành phố Vinh';
+
         fetch('/api/regions/provinces')
             .then(r => r.json())
-            .then(data => data.forEach(p =>
-                $prov.append(`<option value="${p.name}" data-code="${p.code}">${p.name}</option>`)
-            ));
+            .then(data => {
+                addOptions(selProv, data, 'name', 'name', 'code');
 
-        // Tỉnh → Huyện
-        $prov.on('change', function() {
-            const code = $(this).find(':selected').attr('data-code');
-            $dist.empty().append('<option value="">Chọn Quận/Huyện</option>').prop('disabled', true);
-            $ward.empty().append('<option value="">Chọn Phường/Xã</option>').prop('disabled', true);
+                // Restore giá trị cũ (khi submit lỗi), hoặc chọn mặc định Nghệ An
+                const target = oldProv || DEFAULT_PROVINCE;
+                selProv.value = target;
+                selProv.dispatchEvent(new Event('change'));
+            })
+            .catch(err => console.error('Load tỉnh lỗi:', err));
+
+        // ── Tỉnh → Huyện ────────────────────────────
+        selProv.addEventListener('change', function () {
+            const selected = selProv.options[selProv.selectedIndex];
+            const code = selected ? selected.dataset.code : null;
+
+            resetSelect(selDist, 'Chọn Quận/Huyện');
+            resetSelect(selWard, 'Chọn Phường/Xã');
+            if (wardWrapper) wardWrapper.style.display = 'none';
             if (!code) return;
+
             fetch(`/api/regions/districts/${code}`)
                 .then(r => r.json())
-                .then(d => {
-                    d.forEach(x => $dist.append(`<option value="${x.name}" data-code="${x.code}">${x.name}</option>`));
-                    $dist.prop('disabled', false);
-                });
+                .then(data => {
+                    addOptions(selDist, data, 'name', 'name', 'code');
+                    selDist.disabled = false;
+                    // Restore giá trị cũ hoặc chọn mặc định Thành phố Vinh
+                    const targetDist = oldDist || DEFAULT_DISTRICT;
+                    selDist.value = targetDist;
+                    if (selDist.value) {
+                        selDist.dispatchEvent(new Event('change'));
+                    }
+                })
+                .catch(err => console.error('Load huyện lỗi:', err));
         });
 
-        // Huyện → Xã
-        $dist.on('change', function() {
-            const code = $(this).find(':selected').attr('data-code');
-            $ward.empty().append('<option value="">Chọn Phường/Xã</option>').prop('disabled', true);
-            $('#wardWrapper').hide(); // ẩn cho đến khi có xã
+        // ── Huyện → Xã ──────────────────────────────
+        selDist.addEventListener('change', function () {
+            const selected = selDist.options[selDist.selectedIndex];
+            const code = selected ? selected.dataset.code : null;
+
+            resetSelect(selWard, 'Chọn Phường/Xã');
+            if (wardWrapper) wardWrapper.style.display = 'none';
             if (!code) return;
+
             fetch(`/api/regions/wards/${code}`)
                 .then(r => r.json())
-                .then(d => {
-                    if (d.length === 0) return; // không có xã → ẩn
-                    d.forEach(x => $ward.append(`<option value="${x.name}">${x.name}</option>`));
-                    $ward.prop('disabled', false);
-                    $('#wardWrapper').show(); // có xã → hiện
-                });
+                .then(data => {
+                    if (!data.length) return;
+                    addOptions(selWard, data, 'name', 'name', null);
+                    selWard.disabled = false;
+                    if (wardWrapper) wardWrapper.style.display = '';
+                    if (oldWard) selWard.value = oldWard;
+                })
+                .catch(err => console.error('Load xã lỗi:', err));
         });
-
-        // ─── Fuzzy match option trong select ─────────
-        function selectClosest($sel, text) {
-            if (!text) return false;
-            const lo = text.toLowerCase();
-            const loS = stripVN(lo);
-            let best = -1, bestVal = '';
-            $sel.find('option').each(function() {
-                const t  = $(this).text().toLowerCase();
-                const tS = stripVN(t);
-                let score = 0;
-                if (t === lo || tS === loS) score = 100;
-                else if (t.includes(lo) || lo.includes(t) || tS.includes(loS) || loS.includes(tS))
-                    score = 50 + t.length;
-                if (score > best) { best = score; bestVal = $(this).val(); }
-            });
-            if (best >= 50) { $sel.val(bestVal); return true; }
-            return false;
-        }
-
-        // ─── Reverse geocode → điền dropdown ─────────
-        function fillAddress(lat, lng) {
-            const $msg = $('#gmapParseMsg');
-            $msg.html('<span style="color:#6366f1;"><i class="fa fa-spinner fa-spin me-1"></i>Đang xác định địa chỉ...</span>');
-
-            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=vi`)
-            .then(r => r.json())
-            .then(data => {
-                const a = data.address || {};
-                console.log('[GeoLookup]', JSON.stringify(a));
-                const provName = a.state || a.city || '';
-                const distName = a.city_district || a.district || (a.state ? a.city : '') || a.county || a.town || '';
-                const wardName = a.suburb || a.quarter || a.neighbourhood || a.borough || a.village || a.hamlet || '';
-                const road = a.road || a.pedestrian || a.footway || a.street || '';
-
-                // Hàm lấy phần địa chỉ chi tiết từ display_name trước khi gặp ward/district/province
-                function extractStreetDetail(displayName, wN, dN, pN) {
-                    if (!displayName) return '';
-                    const skip = [wN, dN, pN, 'việt nam', 'vietnam']
-                        .filter(Boolean).map(s => stripVN(s.toLowerCase()));
-                    const parts = displayName.split(', ');
-                    const result = [];
-                    for (const part of parts) {
-                        const pl = stripVN(part.toLowerCase());
-                        if (skip.some(sw => sw && (pl.includes(sw) || sw.includes(pl) || pl.length > 2 && sw.length > 2 && (pl.startsWith(sw.slice(0,4)) || sw.startsWith(pl.slice(0,4)))))) break;
-                        if (/^\d{5,}$/.test(part.trim())) continue; // bỏ mã bưu chính
-                        result.push(part.trim());
-                    }
-                    return result.join(', ');
-                }
-
-                const detail = [a.house_number, road, a.amenity].filter(Boolean).join(' ')
-                    || extractStreetDetail(data.display_name, wardName, distName, provName);
-                if (detail) $('#address_detail').val(detail);
-
-                // Dùng /api/regions/search để tìm tỉnh chính xác theo tên
-                fetch(`/api/regions/search?q=${encodeURIComponent(provName)}&level=province`)
-                .then(r => r.json())
-                .then(results => {
-                    if (!results.length) {
-                        $msg.html(`<span style="color:#f59e0b;"><i class="fa fa-warning me-1"></i>Không tìm được tỉnh "${provName}" — chọn thủ công.</span>`);
-                        return;
-                    }
-                    const prov = results[0];
-                    $prov.val(prov.name);
-
-                    if (!distName) {
-                        $msg.html('<span style="color:#22c55e;"><i class="fa fa-check me-1"></i>Đã điền tỉnh. <span style="color:#f59e0b;">✏️ Nhập số nhà/đường vào ô địa chỉ chi tiết.</span></span>');
-                        $('#address_detail').focus();
-                        return;
-                    }
-
-                    // Bước 2: load districts từ local API rồi chọn
-                    fetch(`/api/regions/districts/${prov.code}`)
-                    .then(r => r.json())
-                    .then(districts => {
-                        $dist.empty().append('<option value="">Chọn Quận/Huyện</option>');
-                        districts.forEach(d => $dist.append(`<option value="${d.name}" data-code="${d.code}">${d.name}</option>`));
-                        $dist.prop('disabled', false);
-
-                        const okD = selectClosest($dist, distName);
-                        if (!okD) {
-                            $msg.html('<span style="color:#22c55e;"><i class="fa fa-check me-1"></i>Đã điền tỉnh — không tìm được quận/huyện, chọn thủ công.</span>');
-                            return;
-                        }
-
-                        const distCode = $dist.find('option:selected').attr('data-code');
-                        if (!distCode || !wardName) {
-                            $msg.html('<span style="color:#22c55e;"><i class="fa fa-check me-1"></i>Đã điền tỉnh & quận/huyện. <span style="color:#f59e0b;">✏️ Nhập số nhà/đường vào ô bên dưới.</span></span>');
-                            $('#address_detail').focus();
-                            return;
-                        }
-
-                        // Bước 3: load wards từ local API rồi chọn
-                        fetch(`/api/regions/wards/${distCode}`)
-                        .then(r => r.json())
-                        .then(wards => {
-                            if (!wards.length) {
-                                $('#wardWrapper').hide();
-                                $msg.html('<span style="color:#22c55e;"><i class="fa fa-check me-1"></i>Đã điền tỉnh & quận/huyện. <span style="color:#f59e0b;">✏️ Nhập số nhà/đường vào ô bên dưới.</span></span>');
-                                $('#address_detail').focus();
-                                return;
-                            }
-                            $ward.empty().append('<option value="">Chọn Phường/Xã</option>');
-                            wards.forEach(w => $ward.append(`<option value="${w.name}">${w.name}</option>`));
-                            $ward.prop('disabled', false);
-                            $('#wardWrapper').show();
-                            selectClosest($ward, wardName);
-                            const hasDetail = !!$('#address_detail').val();
-                            $msg.html('<span style="color:#22c55e;"><i class="fa fa-check me-1"></i>Đã điền tỉnh, quận & phường.' + (hasDetail ? '' : ' <span style="color:#f59e0b;">✏️ Nhập số nhà/đường vào ô bên dưới.</span>') + '</span>');
-                            if (!hasDetail) $('#address_detail').focus();
-                        });
-                    });
-                });
-            })
-            .catch(() => {
-                $msg.html('<span style="color:#ef4444;"><i class="fa fa-times me-1"></i>Không kết nối được. Hãy chọn địa chỉ thủ công.</span>');
-            });
-        }
-
-        // ─── Nút "Điền địa chỉ" ──────────────────────
-        $('#parseGmapBtn').on('click', function() {
-            const val = $('#gmapLinkInput').val().trim();
-            const $m  = $('#gmapParseMsg');
-            if (!val) { $m.html('<span style="color:#ef4444;">Hãy nhập link hoặc toạ độ.</span>'); return; }
-            if (/goo\.gl|maps\.app/i.test(val)) {
-                $m.html('<span style="color:#f59e0b;"><i class="fa fa-warning me-1"></i>Link rút gọn không hỗ trợ — mở link, copy URL đầy đủ rồi paste lại.</span>');
-                return;
-            }
-            const c = extractLatLng(val);
-            if (!c || Math.abs(c[0]) > 90 || Math.abs(c[1]) > 180) {
-                $m.html('<span style="color:#ef4444;">Không đọc được toạ độ. Thử: <code>18.6796, 105.6813</code></span>');
-                return;
-            }
-            fillAddress(c[0], c[1]);
-        });
-
-        $('#gmapLinkInput').on('keypress', function(e) {
-            if (e.which === 13) { e.preventDefault(); $('#parseGmapBtn').click(); }
-        });
-    });
+    })();
 </script>
 @endsection
