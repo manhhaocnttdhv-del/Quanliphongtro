@@ -76,6 +76,11 @@ class Room extends Model
         return $this->hasMany(Utility::class);
     }
 
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
@@ -93,12 +98,22 @@ class Room extends Model
 
     public function statusLabel(): string
     {
-        return $this->status === 'available' ? 'Còn trống' : 'Đã thuê';
+        return match($this->status) {
+            'available' => 'Còn trống',
+            'reserved'  => 'Đang giữ chỗ',
+            'rented'    => 'Đã thuê',
+            default     => ucfirst($this->status),
+        };
     }
 
     public function statusBadge(): string
     {
-        return $this->status === 'available' ? 'success' : 'danger';
+        return match($this->status) {
+            'available' => 'success',
+            'reserved'  => 'warning',
+            'rented'    => 'danger',
+            default     => 'secondary',
+        };
     }
 
     public function hasLocation(): bool

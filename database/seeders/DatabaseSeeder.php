@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             FakeDataSeeder::class,
             DemoDataSeeder::class,
+            ScrapedDataSeeder::class,
         ]);
     }
 }

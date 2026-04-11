@@ -374,6 +374,16 @@
                     </a>
                 </li>
                 <li>
+                    <a class="nav-link {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}"
+                        href="{{ route('admin.bookings.index') }}">
+                        <i class="ti ti-calendar-check"></i><span>Đơn đặt phòng</span>
+                        @php
+                            $pendingBookingsAdmin = \App\Models\Booking::when(auth()->user()->isLandlord(), fn($q) => $q->whereHas('room', fn($r) => $r->where('landlord_id', auth()->id())))->where('status', 'pending')->where('expired_at', '>', now())->count();
+                        @endphp
+                        @if($pendingBookingsAdmin > 0)<span class="badge bg-warning text-dark">{{ $pendingBookingsAdmin }}</span>@endif
+                    </a>
+                </li>
+                <li>
                     <a class="nav-link {{ request()->routeIs('admin.contracts.*') ? 'active' : '' }}"
                         href="{{ route('admin.contracts.index') }}">
                         <i class="ti ti-contract"></i><span>Hợp đồng</span>

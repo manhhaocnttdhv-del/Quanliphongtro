@@ -485,22 +485,27 @@
                     {{-- Book button --}}
                     @if($room->isAvailable())
                         @auth
-                            @if($hasActiveRequest)
-                                <div class="alert alert-warning rounded-3 text-center py-3 mb-3">
-                                    <i class="fa fa-clock me-2"></i>Đã gửi yêu cầu thuê, đang chờ duyệt
-                                </div>
+                            <a href="{{ route('bookings.create', $room) }}" class="btn-book" style="background:linear-gradient(135deg,#f97316,#ea580c);margin-bottom:10px;display:block;">
+                                💳 ĐẶT PHÒNG & ĐẶT CỌC NGAY
+                            </a>
+                            @if(!$hasActiveRequest)
+                            <a href="{{ route('rent-requests.create', $room) }}" class="btn-book" style="background:linear-gradient(135deg,#1e293b,#334155);font-size:13px;padding:12px;">
+                                📋 Gửi yêu cầu xem phòng
+                            </a>
                             @else
-                                <a href="{{ route('rent-requests.create', $room) }}" class="btn-book">
-                                    🏠 ĐẶT PHÒNG NGAY
-                                </a>
+                            <div class="alert alert-warning rounded-3 text-center py-2 mt-2" style="font-size:13px;">
+                                <i class="fa fa-clock me-1"></i>Đã gửi yêu cầu xem phòng, đang chờ duyệt
+                            </div>
                             @endif
                         @else
                             <a href="{{ route('login') }}" class="btn-book" style="background:linear-gradient(135deg,#1e293b,#334155)">
                                 🔐 ĐĂNG NHẬP ĐỂ ĐẶT PHÒNG
                             </a>
                         @endauth
+                    @elseif($room->status === 'reserved')
+                        <button class="btn-book" disabled style="background:linear-gradient(135deg,#f59e0b,#d97706);">⏳ Đang được giữ chỗ</button>
                     @else
-                        <button class="btn-book" disabled>Đã có người thuê</button>
+                        <button class="btn-book" disabled>❌ Đã có người thuê</button>
                     @endif
 
                     {{-- Landlord info --}}

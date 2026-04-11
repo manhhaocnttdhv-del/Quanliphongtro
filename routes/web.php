@@ -3,13 +3,16 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RentRequestController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ContractController as UserContractController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\RoomReviewController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RoomController as AdminRoomController;
 use App\Http\Controllers\Admin\RentRequestController as AdminRentRequestController;
+use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\ContractController;
 use App\Http\Controllers\Admin\UtilityController;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
@@ -50,8 +53,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/rooms/{room}/request', [RentRequestController::class, 'create'])->name('rent-requests.create');
     Route::post('/rooms/{room}/request', [RentRequestController::class, 'store'])->name('rent-requests.store');
 
+    // ─── Booking (Đặt phòng) Flow ─────────────────────────────────────────────
+    Route::get('/rooms/{room}/book', [BookingController::class, 'create'])->name('bookings.create');
+    Route::post('/rooms/{room}/book', [BookingController::class, 'store'])->name('bookings.store');
+    Route::get('/bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
+    Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+    Route::get('/bookings/{booking}/payment', [BookingController::class, 'payment'])->name('bookings.payment');
+    Route::post('/bookings/{booking}/payment/success', [BookingController::class, 'paymentSuccess'])->name('bookings.payment.success');
+    Route::delete('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+
     Route::get('/my-invoices', [InvoiceController::class, 'index'])->name('user.invoices');
     Route::get('/my-invoices/{invoice}', [InvoiceController::class, 'show'])->name('user.invoices.show');
+
+    // Contracts (tenant)
+    Route::get('/my-contracts', [UserContractController::class, 'index'])->name('user.contracts.index');
+    Route::get('/my-contracts/{contract}', [UserContractController::class, 'show'])->name('user.contracts.show');
 
     // Maintenance (tenant)
     Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
@@ -90,6 +106,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/rent-requests', [AdminRentRequestController::class, 'index'])->name('rent-requests.index');
     Route::post('/rent-requests/{rentRequest}/approve', [AdminRentRequestController::class, 'approve'])->name('rent-requests.approve');
     Route::post('/rent-requests/{rentRequest}/reject', [AdminRentRequestController::class, 'reject'])->name('rent-requests.reject');
+
+    // ─── Bookings (Admin) ──────────────────────────────────────────────────────
+    Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
+    Route::post('/bookings/{booking}/confirm-payment', [AdminBookingController::class, 'confirmPayment'])->name('bookings.confirm-payment');
+    Route::delete('/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::post('/bookings/{booking}/convert-to-contract', [AdminBookingController::class, 'convertToContract'])->name('bookings.convert');
 
     // Contracts
     Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');

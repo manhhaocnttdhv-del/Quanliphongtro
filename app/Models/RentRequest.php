@@ -9,10 +9,12 @@ class RentRequest extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'room_id', 'note', 'status', 'requested_at'];
+    protected $fillable = ['user_id', 'room_id', 'note', 'move_in_date', 'agreed_rent', 'status', 'requested_at'];
 
     protected $casts = [
         'requested_at' => 'datetime',
+        'move_in_date' => 'date',
+        'agreed_rent'  => 'decimal:0',
     ];
 
     public function user()

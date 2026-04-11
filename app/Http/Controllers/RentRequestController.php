@@ -23,7 +23,8 @@ class RentRequestController extends Controller
     public function store(Request $request, Room $room)
     {
         $request->validate([
-            'note' => ['nullable', 'string', 'max:1000'],
+            'note'         => ['nullable', 'string', 'max:1000'],
+            'move_in_date' => ['nullable', 'date', 'after_or_equal:today'],
         ]);
 
         // Prevent duplicate pending requests
@@ -41,14 +42,21 @@ class RentRequestController extends Controller
             'user_id'      => auth()->id(),
             'room_id'      => $room->id,
             'note'         => $request->note,
+            'move_in_date' => $request->move_in_date,
             'status'       => 'pending',
             'requested_at' => now(),
         ]);
 
-        // Notify all admins
+        // Notify admin
         $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
             $admin->notify(new NewRentRequest($rentRequest));
+        }
+
+        // ── Notify landlord của phòng đó ──
+        $landlord = $room->landlord;
+        if ($landlord && $landlord->role === 'landlord') {
+            $landlord->notify(new NewRentRequest($rentRequest));
         }
 
         return redirect()->route('rooms.index')

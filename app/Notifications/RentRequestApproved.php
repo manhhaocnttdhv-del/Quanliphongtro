@@ -22,7 +22,7 @@ class RentRequestApproved extends Notification
         return [
             'title'   => 'Yêu cầu thuê phòng đã được duyệt!',
             'message' => 'Yêu cầu thuê phòng ' . $this->rentRequest->room->name . ' của bạn đã được chấp thuận. Hợp đồng đã được tạo.',
-            'url'     => '/my-invoices',
+            'url'     => '/my-contracts',
             'type'    => 'approved',
         ];
     }

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ asset('user/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('user/css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('user/css/responsive.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" media="screen">
     <style>
         .notification-bell { position: relative; cursor: pointer; }
@@ -71,8 +71,11 @@
                                     @auth
                                         {{-- Notification Bell --}}
                                         <li class="nav-item dropdown">
-                                            <a class="nav-link notification-bell" href="#" id="notifDropdown" data-toggle="dropdown">
-                                                <i class="fa fa-bell" style="font-size:18px;color:#fff;"></i>
+                                            <a class="nav-link notification-bell" href="#" id="notifDropdown" data-toggle="dropdown" aria-label="Thông báo">
+                                                {{-- Bell icon filled --}}
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;color:#333;">
+                                                    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                                                </svg>
                                                 @if(auth()->user()->unreadNotifications->count() > 0)
                                                     <span class="notification-badge">{{ auth()->user()->unreadNotifications->count() }}</span>
                                                 @endif
@@ -100,7 +103,11 @@
                                         </li>
                                         <li class="nav-item dropdown">
                                             <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
-                                                <i class="fa fa-user-circle"></i> {{ auth()->user()->name }}
+                                                {{-- User icon filled --}}
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px;color:#333;">
+                                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                                                </svg>
+                                                {{ auth()->user()->name }}
                                             </a>
                                             <div class="dropdown-menu dropdown-menu-right">
                                                 @if(auth()->user()->isAdmin())
@@ -108,6 +115,20 @@
                                                         <i class="fa fa-dashboard mr-1"></i> Vào trang Quản trị
                                                     </a>
                                                 @endif
+                                                <a class="dropdown-item" href="{{ route('bookings.my') }}" style="{{ request()->routeIs('bookings.*') ? 'color:#f97316!important;background:#fff7ed;' : '' }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:6px;color:#f97316;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+                                                    Đơn đặt phòng
+                                                    @php
+                                                        $pendingBookings = auth()->user() ? \App\Models\Booking::where('user_id', auth()->id())->where('status', 'pending')->where('expired_at', '>', now())->count() : 0;
+                                                    @endphp
+                                                    @if($pendingBookings > 0)
+                                                        <span style="background:#f97316;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;">{{ $pendingBookings }}</span>
+                                                    @endif
+                                                </a>
+                                                <a class="dropdown-item" href="{{ route('user.contracts.index') }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:6px;color:#10b981;"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                                    Hợp đồng của tôi
+                                                </a>
                                                 <a class="dropdown-item" href="{{ route('user.invoices') }}">
                                                     <i class="fa fa-file-text-o mr-1"></i> Hóa đơn của tôi
                                                 </a>

@@ -264,9 +264,10 @@ window.addEventListener('load', function () {
         return;
     }
 
-    const defaultLat = {{ old('latitude', $room->latitude ?? 18.6796) }};
-    const defaultLng = {{ old('longitude', $room->longitude ?? 105.6813) }};
-    const hasCoord   = {{ (old('latitude', $room->latitude ?? null)) ? 'true' : 'false' }};
+    const defaultLat = {{ old('latitude', isset($room) ? ($room->latitude ?? 18.6796) : 18.6796) }};
+    const defaultLng = {{ old('longitude', isset($room) ? ($room->longitude ?? 105.6813) : 105.6813) }};
+    @php $hasCoordVal = old('latitude', isset($room) ? ($room->latitude ?? null) : null) ? 'true' : 'false'; @endphp
+    const hasCoord   = {{ $hasCoordVal }};
 
     const map = L.map('adminMap').setView([defaultLat, defaultLng], hasCoord ? 16 : 13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
