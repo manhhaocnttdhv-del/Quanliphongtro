@@ -27,10 +27,10 @@ use Illuminate\Support\Facades\Route;
 
 // ─── Local Region API (Tỉnh/Huyện/Xã từ DB) ─────
 Route::prefix('api/regions')->group(function () {
-    Route::get('/provinces',          [RegionController::class, 'provinces']);
-    Route::get('/districts/{code}',   [RegionController::class, 'districts']);
-    Route::get('/wards/{code}',       [RegionController::class, 'wards']);
-    Route::get('/search',             [RegionController::class, 'search']);
+    Route::get('/provinces', [RegionController::class, 'provinces']);
+    Route::get('/districts/{code}', [RegionController::class, 'districts']);
+    Route::get('/wards/{code}', [RegionController::class, 'wards']);
+    Route::get('/search', [RegionController::class, 'search']);
 });
 
 
@@ -73,6 +73,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
     Route::get('/maintenance/create', [MaintenanceController::class, 'create'])->name('maintenance.create');
     Route::post('/maintenance', [MaintenanceController::class, 'store'])->name('maintenance.store');
+    Route::get('/maintenance', [App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index');
+    Route::get('/maintenance/create', [App\Http\Controllers\MaintenanceController::class, 'create'])->name('maintenance.create');
+    Route::post('/maintenance', [App\Http\Controllers\MaintenanceController::class, 'store'])->name('maintenance.store');
+    Route::get('/maintenance/{maintenanceRequest}', [App\Http\Controllers\MaintenanceController::class, 'show'])->name('maintenance.show');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -113,6 +117,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/bookings/{booking}/confirm-payment', [AdminBookingController::class, 'confirmPayment'])->name('bookings.confirm-payment');
     Route::delete('/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel'])->name('bookings.cancel');
     Route::post('/bookings/{booking}/convert-to-contract', [AdminBookingController::class, 'convertToContract'])->name('bookings.convert');
+    // Room Members
+    Route::post('/room-members', [App\Http\Controllers\Admin\RoomMemberController::class, 'store'])->name('room-members.store');
+    Route::patch('/room-members/{roomMember}', [App\Http\Controllers\Admin\RoomMemberController::class, 'update'])->name('room-members.update');
+    Route::delete('/room-members/{roomMember}', [App\Http\Controllers\Admin\RoomMemberController::class, 'destroy'])->name('room-members.destroy');
+
+    // Maintenance
+    Route::get('/maintenance', [App\Http\Controllers\Admin\MaintenanceController::class, 'index'])->name('maintenance.index');
+    Route::get('/maintenance/{maintenance}', [App\Http\Controllers\Admin\MaintenanceController::class, 'show'])->name('maintenance.show');
+    Route::patch('/maintenance/{maintenance}', [App\Http\Controllers\Admin\MaintenanceController::class, 'update'])->name('maintenance.update');
 
     // Contracts
     Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');

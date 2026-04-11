@@ -66,6 +66,11 @@ class User extends Authenticatable
         return $this->hasManyThrough(Invoice::class, Contract::class, 'user_id', 'contract_id');
     }
 
+    public function maintenanceRequests()
+    {
+        return $this->hasMany(MaintenanceRequest::class);
+    }
+
     public function rooms()
     {
         return $this->hasMany(Room::class, 'landlord_id');

@@ -86,6 +86,16 @@ class Room extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function maintenanceRequests()
+    {
+        return $this->hasMany(MaintenanceRequest::class);
+    }
+
+    public function members()
+    {
+        return $this->hasMany(RoomMember::class);
+    }
+
     public function activeContract()
     {
         return $this->hasOne(Contract::class)->where('status', 'active')->latest();

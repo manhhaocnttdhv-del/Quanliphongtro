@@ -148,6 +148,25 @@
     {{-- ===== KẾT THÚC TOẠ ĐỘ ===== --}}
 
     <div class="col-md-12">
+        <label class="form-label fw-semibold">Vị trí chính xác trên bản đồ</label>
+        <div class="row g-2 mb-2">
+            <div class="col-md-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">Vĩ độ (Lat)</span>
+                    <input type="text" id="latitude" name="latitude" class="form-control" value="{{ old('latitude', $room->latitude ?? '') }}" readonly>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">Kinh độ (Lng)</span>
+                    <input type="text" id="longitude" name="longitude" class="form-control" value="{{ old('longitude', $room->longitude ?? '') }}" readonly>
+                </div>
+            </div>
+        </div>
+        <div id="map" style="height: 400px; border-radius: 8px; border: 1px solid #ddd;"></div>
+        <div class="form-text mt-1 text-primary"><i class="ti ti-info-circle"></i> Kéo thẻ đánh dấu (marker) để chọn đúng vị trí căn phòng của bạn.</div>
+    </div>
+    <div class="col-md-12">
         <label class="form-label fw-semibold">Ảnh phòng</label>
         <input type="file" class="form-control" name="images[]" multiple accept="image/*">
         <div class="form-text">Có thể chọn nhiều ảnh. Định dạng: JPG, PNG. Tối đa 5MB/ảnh.</div>
@@ -155,7 +174,9 @@
     </div>
 </div>
 
-{{-- ===== SCRIPTS ===== --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <script>
 // Hàm parse địa điểm — global để cả 2 phần dùng được
 function _parseLocationStr(input) {
@@ -193,17 +214,76 @@ $(document).ready(function() {
             });
         });
 
-    $province.on('change', function() {
-        const code = $(this).find(':selected').attr('data-code');
-        $district.empty().append('<option value="">Chọn Quận/Huyện</option>').prop('disabled', true);
-        $ward.empty().append('<option value="">Chọn Phường/Xã</option>').prop('disabled', true);
-        if (!code) return;
-        fetch(`/api/regions/districts/${code}`)
-            .then(r => r.json())
-            .then(d => {
-                d.forEach(x => $district.append(`<option value="${x.name}" data-code="${x.code}">${x.name}</option>`));
-                $district.prop('disabled', false);
-            });
+        // Load wards when district changes
+        districtSelect.on('change', function() {
+            const code = $(this).find(':selected').data('code');
+            wardSelect.empty().append('<option value="">Chọn Phường/Xã</option>').prop('disabled', true);
+            
+            if (code) {
+                fetch(`https://provinces.open-api.vn/api/d/${code}?depth=2`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.wards.forEach(w => {
+                            wardSelect.append(`<option value="${w.name}">${w.name}</option>`);
+                        });
+                        wardSelect.prop('disabled', false);
+                    });
+            }
+        });
+        // Map logic
+        const defaultLat = "{{ old('latitude', $room->latitude ?? 10.762622) }}";
+        const defaultLng = "{{ old('longitude', $room->longitude ?? 106.660172) }}";
+        
+        const map = L.map('map').setView([defaultLat, defaultLng], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        let marker = L.marker([defaultLat, defaultLng], {
+            draggable: true
+        }).addTo(map);
+
+        function updateInputs(lat, lng) {
+            $('#latitude').val(lat.toFixed(8));
+            $('#longitude').val(lng.toFixed(8));
+        }
+
+        marker.on('dragend', function(event) {
+            const position = marker.getLatLng();
+            updateInputs(position.lat, position.lng);
+        });
+
+        map.on('click', function(event) {
+            const lat = event.latlng.lat;
+            const lng = event.latlng.lng;
+            marker.setLatLng([lat, lng]);
+            updateInputs(lat, lng);
+        });
+
+        // Relocate map based on address
+        $('#address_detail, #ward, #district, #province').on('change', function() {
+            const address = [
+                $('#address_detail').val(),
+                $('#ward').val(),
+                $('#district').val(),
+                $('#province').val()
+            ].filter(Boolean).join(', ');
+
+            if (address.length > 5) {
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            const lat = parseFloat(data[0].lat);
+                            const lng = parseFloat(data[0].lon);
+                            map.setView([lat, lng], 16);
+                            marker.setLatLng([lat, lng]);
+                            updateInputs(lat, lng);
+                        }
+                    });
+            }
+        });
     });
 
     $district.on('change', function() {

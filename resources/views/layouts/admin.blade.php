@@ -508,9 +508,60 @@
             animation: toastSlideOut 0.3s ease forwards;
         }
 
-        .toast-notification.toast-success {
-            border-left-color: #10b981;
-        }
+        @if(auth()->user()->isLandlord())
+            <li class="px-4 pt-3 pb-1"><small class="nav-text">Quản lý phòng</small></li>
+            <li>
+                <a class="nav-link {{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}" href="{{ route('admin.rooms.index') }}">
+                    <i class="ti ti-building"></i><span>Phòng trọ</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link {{ request()->routeIs('admin.rent-requests.*') ? 'active' : '' }}" href="{{ route('admin.rent-requests.index') }}">
+                    <i class="ti ti-file-description"></i><span>Yêu cầu thuê
+                        @php 
+                            $pending = \App\Models\RentRequest::where('status','pending')
+                                ->whereHas('room', fn($q) => $q->where('landlord_id', auth()->id()))
+                                ->count(); 
+                        @endphp
+                        @if($pending > 0)<span class="badge bg-danger ms-auto">{{ $pending }}</span>@endif
+                    </span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link {{ request()->routeIs('admin.contracts.*') ? 'active' : '' }}" href="{{ route('admin.contracts.index') }}">
+                    <i class="ti ti-contract"></i><span>Hợp đồng</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link {{ request()->routeIs('admin.utilities.*') ? 'active' : '' }}" href="{{ route('admin.utilities.index') }}">
+                    <i class="ti ti-bolt"></i><span>Điện nước</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link {{ request()->routeIs('admin.invoices.*') ? 'active' : '' }}" href="{{ route('admin.invoices.index') }}">
+                    <i class="ti ti-receipt"></i><span>Hóa đơn</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link {{ request()->routeIs('admin.maintenance.*') ? 'active' : '' }}" href="{{ route('admin.maintenance.index') }}">
+                    <i class="ti ti-tool"></i><span>Bảo trì 
+                        @php 
+                            $pendingMaint = \App\Models\MaintenanceRequest::where('status','pending');
+                            if(auth()->user()->isLandlord()) {
+                                $pendingMaint->whereHas('room', fn($q) => $q->where('landlord_id', auth()->id()));
+                            }
+                            $pendingMaintCount = $pendingMaint->count();
+                        @endphp
+                        @if($pendingMaintCount > 0)<span class="badge bg-warning ms-auto">{{ $pendingMaintCount }}</span>@endif
+                    </span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link {{ request()->routeIs('admin.commissions.*') ? 'active' : '' }}" href="{{ route('admin.commissions.index') }}">
+                    <i class="ti ti-coin"></i><span>Phí hoa hồng</span>
+                </a>
+            </li>
+        @endif
 
         .toast-notification.toast-error {
             border-left-color: #ef4444;

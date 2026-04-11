@@ -7,16 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class MaintenanceRequest extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'room_id', 'user_id', 'title', 'description',
-        'images', 'priority', 'status', 'admin_note', 'resolved_at',
+        'room_id', 'user_id', 'title', 'description', 
+        'images', 'status', 'priority', 'admin_notes'
     ];
 
     protected $casts = [
-        'images'      => 'array',
-        'resolved_at' => 'datetime',
+        'images' => 'array',
     ];
 
     public function room()
@@ -31,45 +28,23 @@ class MaintenanceRequest extends Model
 
     public function statusLabel(): string
     {
-        return match ($this->status) {
-            'pending'     => 'Chờ xử lý',
+        return match($this->status) {
+            'pending' => 'Chờ xử lý',
             'in_progress' => 'Đang xử lý',
-            'done'        => 'Hoàn thành',
-            'rejected'    => 'Từ chối',
-            default       => 'Không xác định',
+            'resolved' => 'Đã giải quyết',
+            'cancelled' => 'Đã hủy',
+            default => $this->status,
         };
     }
 
     public function statusBadge(): string
     {
-        return match ($this->status) {
-            'pending'     => 'warning',
-            'in_progress' => 'info',
-            'done'        => 'success',
-            'rejected'    => 'danger',
-            default       => 'secondary',
-        };
-    }
-
-    public function priorityLabel(): string
-    {
-        return match ($this->priority) {
-            'low'    => 'Thấp',
-            'medium' => 'Trung bình',
-            'high'   => 'Cao',
-            'urgent' => 'Khẩn cấp',
-            default  => 'Không xác định',
-        };
-    }
-
-    public function priorityBadge(): string
-    {
-        return match ($this->priority) {
-            'low'    => 'secondary',
-            'medium' => 'primary',
-            'high'   => 'warning',
-            'urgent' => 'danger',
-            default  => 'secondary',
+        return match($this->status) {
+            'pending' => 'warning',
+            'in_progress' => 'primary',
+            'resolved' => 'success',
+            'cancelled' => 'danger',
+            default => 'secondary',
         };
     }
 }

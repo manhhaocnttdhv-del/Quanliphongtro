@@ -38,4 +38,9 @@ class Contract extends Model
     {
         return $this->hasMany(Invoice::class);
     }
+
+    public function members()
+    {
+        return $this->hasMany(RoomMember::class);
+    }
 }

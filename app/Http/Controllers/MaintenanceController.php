@@ -2,63 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MaintenanceRequest;
-use App\Models\Contract;
 use Illuminate\Http\Request;
+use App\Models\MaintenanceRequest;
+use App\Models\Room;
 use Illuminate\Support\Facades\Storage;
 
 class MaintenanceController extends Controller
 {
     public function index()
     {
-        $user     = auth()->user();
-        $requests = MaintenanceRequest::with('room')
-            ->where('user_id', $user->id)
-            ->latest()
-            ->paginate(10);
-
-        return view('user.maintenance.index', compact('requests'));
+        $requests = auth()->user()->maintenanceRequests()->with('room')->latest()->get();
+        return view('maintenance.index', compact('requests'));
     }
 
     public function create()
     {
-        $user = auth()->user();
-
-        // Get rooms the user is currently renting (active contracts)
-        $activeContracts = Contract::where('user_id', $user->id)
+        // Get rooms that the user is currently renting
+        $rooms = auth()->user()->contracts()
             ->where('status', 'active')
             ->with('room')
-            ->get();
-
-        $rooms = $activeContracts->pluck('room')->filter();
+            ->get()
+            ->pluck('room');
 
         if ($rooms->isEmpty()) {
-            return redirect()->route('rooms.index')
-                ->with('error', 'Bạn cần có hợp đồng thuê phòng đang hiệu lực để gửi yêu cầu bảo trì.');
+            return redirect()->route('home')->with('error', 'Bạn không có phòng trọ nào đang thuê để báo cáo sự cố.');
         }
 
-        return view('user.maintenance.create', compact('rooms'));
+        return view('maintenance.create', compact('rooms'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'room_id'     => 'required|exists:rooms,id',
-            'title'       => 'required|string|max:255',
+            'room_id' => 'required|exists:rooms,id',
+            'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'priority'    => 'required|in:low,medium,high,urgent',
-            'images'      => 'nullable|array|max:5',
-            'images.*'    => 'image|mimes:jpeg,png,jpg,webp|max:3072',
+            'priority' => 'required|in:low,medium,high',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        // Verify user has active contract for this room
-        $hasContract = Contract::where('user_id', auth()->id())
+        // Verify user is renting this room
+        $isRenting = auth()->user()->contracts()
             ->where('room_id', $request->room_id)
             ->where('status', 'active')
             ->exists();
 
-        if (!$hasContract) {
-            return back()->with('error', 'Bạn không có quyền gửi yêu cầu bảo trì cho phòng này.');
+        if (!$isRenting) {
+            return back()->with('error', 'Bạn không có quyền báo cáo sự cố cho phòng này.');
         }
 
         $imagePaths = [];
@@ -69,15 +59,21 @@ class MaintenanceController extends Controller
         }
 
         MaintenanceRequest::create([
-            'room_id'     => $request->room_id,
-            'user_id'     => auth()->id(),
-            'title'       => $request->title,
+            'room_id' => $request->room_id,
+            'user_id' => auth()->id(),
+            'title' => $request->title,
             'description' => $request->description,
-            'priority'    => $request->priority,
-            'images'      => $imagePaths ?: null,
+            'priority' => $request->priority,
+            'images' => $imagePaths,
+            'status' => 'pending',
         ]);
 
-        return redirect()->route('maintenance.index')
-            ->with('success', 'Yêu cầu bảo trì đã được gửi thành công! Chúng tôi sẽ phản hồi sớm nhất.');
+        return redirect()->route('maintenance.index')->with('success', 'Yêu cầu bảo trì đã được gửi thành công.');
+    }
+
+    public function show(MaintenanceRequest $maintenanceRequest)
+    {
+        $this->authorize('view', $maintenanceRequest);
+        return view('maintenance.show', compact('maintenanceRequest'));
     }
 }
